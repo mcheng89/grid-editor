@@ -1,4 +1,4 @@
-import { Component, Input, ContentChildren, ViewChild, ElementRef, AfterViewInit, NgZone } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterViewInit, NgZone } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 
@@ -9,7 +9,7 @@ import { GridColumnComponent } from './grid-column.component';
 })
 export class GridEditorComponent implements AfterViewInit {
   @Input() data: any[];
-  @ContentChildren(GridColumnComponent) columns: GridColumnComponent[];
+  @ContentChildren(GridColumnComponent) columns: QueryList<GridColumnComponent>;
   
   constructor(private elementRef: ElementRef, private zone: NgZone) {}
   
@@ -142,6 +142,7 @@ export class GridEditorComponent implements AfterViewInit {
     this.initSelectionGrid();
   }
 
+  @Output('onEditStart') onEditEmitter = new EventEmitter();
   editingCell: any = {};
   startEditing(event) {
     const target = this.getSelectionTarget(event);
@@ -151,6 +152,13 @@ export class GridEditorComponent implements AfterViewInit {
           row: parseInt(target.parentNode.dataset.row),
           col: parseInt(target.dataset.col),
         };
+        setTimeout(() => {
+          this.onEditEmitter.emit({
+            row: this.data[this.editingCell.row],
+            col: this.columns.toArray()[this.editingCell.col],
+            target: target,
+          });
+        }, 1);
       });
     }
   }

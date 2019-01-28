@@ -12,10 +12,14 @@ export class GridColumnComponent implements AfterViewInit {
   
   @ContentChildren(GridTemplateDirective) templateRef: QueryList<GridTemplateDirective>;
   headerRef: any;
+  editorRef: any;
   
   ngAfterViewInit() {
     this.headerRef = this.templateRef.find(tpl => {
       return tpl.letOf == 'header';
+    }).templateRef;
+    this.editorRef = this.templateRef.find(tpl => {
+      return tpl.letOf == 'editor';
     }).templateRef;
   }
 }

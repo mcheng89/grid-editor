@@ -27,7 +27,9 @@
           data-type="cell"
           [attr.data-col]="colIdx">
           <ng-container [ngSwitch]="editingCell.row == rowIdx && editingCell.col == colIdx">
-            <div *ngSwitchCase="true" class="edit-cell"><input type="text" /></div>
+            <div *ngSwitchCase="true" class="edit-cell">
+              <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
+            </div>
             <span *ngSwitchDefault>{{row[col.dataField]}}</span>
           </ng-container>
         </td>

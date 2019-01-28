@@ -34,4 +34,9 @@ export class AppComponent implements OnInit {
       this.data.push(row);
     }
   }
+
+  onEditStart(event) {
+    console.log(event);
+    event.target.querySelector('input').focus();
+  }
 }
