@@ -1,0 +1,40 @@
+<div class="fixed" #headerScroll>
+  <table [style.width]="totalWidth ? totalWidth + scrollbarWidth + 'px' : 'auto'">
+    <colgroup>
+      <col *ngFor="let col of columns; let colIdx = index" [style.width]="colWidths[colIdx] ? colWidths[colIdx] + 'px' : 'auto'">
+    </colgroup>
+    <tbody>
+      <tr class="header" #header>
+        <td *ngFor="let col of columns; let colIdx = index" 
+          [class.selected]="selectionCols[colIdx]"
+          data-type="col"
+          [attr.data-col]="colIdx">
+          <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="scrollable data-table" #tableScroll>
+  <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'">
+    <colgroup>
+      <col *ngFor="let col of columns; let colIdx = index" [style.width]="colWidths[colIdx] ? colWidths[colIdx] + 'px' : 'auto'">
+    </colgroup>
+    <tbody>
+      <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx">
+        <td *ngFor="let col of columns; let colIdx = index" 
+          [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
+          data-type="cell"
+          [attr.data-col]="colIdx">
+          <ng-container [ngSwitch]="editingCell.row == rowIdx && editingCell.col == colIdx">
+            <div *ngSwitchCase="true" class="edit-cell"><input type="text" /></div>
+            <span *ngSwitchDefault>{{row[col.dataField]}}</span>
+          </ng-container>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="fixed">
+    hi
+  </div>
+</div>
