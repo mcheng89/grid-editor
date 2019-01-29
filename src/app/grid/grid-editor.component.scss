@@ -1,6 +1,11 @@
 :host {
+  display: flex;
+  overflow: hidden;
+}
+.grid {
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #ccc;
@@ -22,6 +27,7 @@ td {
 .scrollable {
   flex: 1;
   overflow: scroll;
+  position: relative;
 }
 
 .header td {
@@ -59,4 +65,15 @@ tr.row td.selected:before {
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+.selections {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.selection-border {
+  position: absolute;
+  background-color: rgb(75, 137, 255);
+  display: block;
 }

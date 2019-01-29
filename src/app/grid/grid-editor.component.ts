@@ -1,34 +1,36 @@
-import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterViewInit, NgZone } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 
 @Component({
   selector: 'grid-editor',
   templateUrl: './grid-editor.component.html',
-  styleUrls: ['./grid-editor.component.scss']
+  styleUrls: ['./grid-editor.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GridEditorComponent implements AfterViewInit {
   @Input() data: any[];
   @ContentChildren(GridColumnComponent) columns: QueryList<GridColumnComponent>;
   
-  constructor(private elementRef: ElementRef, private zone: NgZone) {}
+  constructor(private elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
   
   ngAfterViewInit() {
     this.initSelectionGrid();
     this.resizeColHeaders();
+    this.cdr.detectChanges();
     
-    this.zone.runOutsideAngular(() => {
-      this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
-        event.preventDefault();
-      });
-      this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
-
-      this.elementRef.nativeElement.addEventListener('mousedown', this.selectionStart.bind(this));
-      this.elementRef.nativeElement.addEventListener('mousemove', this.selectionMove.bind(this));
-      document.addEventListener('mouseup', this.selectionEnd.bind(this));
-  
-      this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
+    this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
+      event.preventDefault();
     });
+    this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
+
+    this.elementRef.nativeElement.addEventListener('mousedown', this.selectionStart.bind(this));
+    this.elementRef.nativeElement.addEventListener('mousemove', this.selectionMove.bind(this));
+    document.addEventListener('mouseup', this.selectionEnd.bind(this));
+
+    this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
+
+    this.elementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
   
   colWidths: number[] = [];
@@ -56,6 +58,7 @@ export class GridEditorComponent implements AfterViewInit {
     this.headerScrollRef.nativeElement.scrollLeft = event.target.scrollLeft;
   }
   
+  focusCell: any;
   currentSelection: any;
   selectionRanges: any[] = [];
   selectionCols: boolean[] = [];
@@ -75,24 +78,25 @@ export class GridEditorComponent implements AfterViewInit {
   selectionStart(event) {
     const target = this.getSelectionTarget(event);
     if (target.tagName == "TD") {
-      this.currentSelection = {
-        type: target.dataset.type
-      };
-      this.currentSelection.startCell = target;
-      this.currentSelection.endCell = target;
-      if (target.dataset.type == "cell") {
-        this.currentSelection.startRow = parseInt(target.parentNode.dataset.row);
-        this.currentSelection.endRow = parseInt(target.parentNode.dataset.row);
-      }
-      // else col selection
-      this.currentSelection.startCol = parseInt(target.dataset.col);
-      this.currentSelection.endCol = parseInt(target.dataset.col);
-      
-      this.zone.run(() => {
-        this.selectionRanges = [this.currentSelection];
-        this.setSelectionRange(this.currentSelection);
-      });
+      this.focusCell = target;
+      this.currentSelection = this.createSelection(target);
+      this.setSelectionRange(this.currentSelection);
     }
+  }
+  createSelection(target) {
+    let selection: any = {
+      type: target.dataset.type
+    };
+    selection.startCell = target;
+    selection.endCell = target;
+    if (target.dataset.type == "cell") {
+      selection.startRow = parseInt(target.parentNode.dataset.row);
+      selection.endRow = parseInt(target.parentNode.dataset.row);
+    }
+    // else col selection
+    selection.startCol = parseInt(target.dataset.col);
+    selection.endCol = parseInt(target.dataset.col);
+    return selection;
   }
   selectionMove(event) {
     if (!this.currentSelection) {
@@ -108,10 +112,7 @@ export class GridEditorComponent implements AfterViewInit {
         this.currentSelection.endRow = parseInt(target.parentNode.dataset.row);
       }
       this.currentSelection.endCol = parseInt(target.dataset.col);
-
-      this.zone.run(() => {
-        this.setSelectionRange(this.currentSelection);
-      });
+      this.setSelectionRange(this.currentSelection);
     }
   }
   selectionEnd(event) {
@@ -120,26 +121,74 @@ export class GridEditorComponent implements AfterViewInit {
   setSelectionRange(range) {
     this.deselect();
 
+    range.top = Math.min(range.startCell.offsetTop, range.endCell.offsetTop);
+    range.left = Math.min(range.startCell.offsetLeft, range.endCell.offsetLeft);
+    if (range.startCell.offsetLeft < range.endCell.offsetLeft) {
+      range.width = range.endCell.offsetLeft - range.startCell.offsetLeft + range.endCell.offsetWidth;
+    } else {
+      range.width = range.startCell.offsetLeft - range.endCell.offsetLeft + range.startCell.offsetWidth;
+    }
+    if (range.startCell.offsetTop <= range.endCell.offsetTop) {
+      range.height = range.endCell.offsetTop - range.startCell.offsetTop + range.endCell.offsetHeight;
+    } else {
+      range.height = range.startCell.offsetTop - range.endCell.offsetTop + range.startCell.offsetHeight;
+    }
+    this.selectionRanges = [range];
+
     let minRow, maxRow; 
     if (range.type == "cell") {
-      minRow = range.startRow < range.endRow ? range.startRow : range.endRow;
-      maxRow = range.startRow > range.endRow ? range.startRow : range.endRow;
+      minRow = Math.min(range.startRow, range.endRow);
+      maxRow = Math.max(range.startRow, range.endRow);
     } else {
       // else col selection
       minRow = 0;
       maxRow = this.data.length - 1;
     }
-    const minCol = range.startCol < range.endCol ? range.startCol : range.endCol;
-    const maxCol = range.startCol > range.endCol ? range.startCol : range.endCol;
+    const minCol = Math.min(range.startCol, range.endCol);
+    const maxCol = Math.max(range.startCol, range.endCol);
     for (let rowIdx = minRow; rowIdx <= maxRow; rowIdx++) {
       for (let colIdx = minCol; colIdx <= maxCol; colIdx++) {
         this.selectionCells[rowIdx][colIdx] = true;
         this.selectionCols[colIdx] = true;
       }
     }
+    this.cdr.detectChanges();
   }
   deselect() {
-    this.initSelectionGrid();
+    for (let col=0; col<this.columns.length; col++) {
+      for (let row=0; row<this.selectionCells.length; row++) {
+        this.selectionCells[row][col] = false;
+      }
+      this.selectionCols[col] = false
+    }
+    this.selectionRanges = [];
+  }
+
+  moveFocus(event) {
+    const row = parseInt(this.focusCell.parentNode.dataset.row);
+    const col = parseInt(this.focusCell.dataset.col);
+    let newFocusCell;
+    if (event.key == "ArrowUp" || event.key == "Up") {
+      if (row <= 0) return;
+      const table = this.focusCell.parentNode.parentNode;
+      newFocusCell = table.children[row - 1].children[col];
+    } else if (event.key == "ArrowDown" || event.key == "Down") {
+      if (row >= this.data.length - 1) return;
+      const table = this.focusCell.parentNode.parentNode;
+      newFocusCell = table.children[row + 1].children[col];
+    } else if (event.key == "ArrowLeft" || event.key == "Left") {
+      if (col <= 0) return;
+      const rowEl = this.focusCell.parentNode;
+      newFocusCell = rowEl.children[col - 1];
+    } else if (event.key == "ArrowRight" || event.key == "Right") {
+      if (col >= this.data[row].length - 1) return;
+      const rowEl = this.focusCell.parentNode;
+      newFocusCell = rowEl.children[col + 1];
+    }
+    if (newFocusCell) {
+      this.focusCell = newFocusCell;
+      this.setSelectionRange(this.createSelection(this.focusCell));
+    }
   }
 
   @Output('onEditStart') onEditEmitter = new EventEmitter();
@@ -147,19 +196,18 @@ export class GridEditorComponent implements AfterViewInit {
   startEditing(event) {
     const target = this.getSelectionTarget(event);
     if (target.tagName == "TD" && target.dataset.type == "cell") {
-      this.zone.run(() => {
-        this.editingCell = {
-          row: parseInt(target.parentNode.dataset.row),
-          col: parseInt(target.dataset.col),
-        };
-        setTimeout(() => {
-          this.onEditEmitter.emit({
-            row: this.data[this.editingCell.row],
-            col: this.columns.toArray()[this.editingCell.col],
-            target: target,
-          });
-        }, 1);
-      });
+      this.editingCell = {
+        row: parseInt(target.parentNode.dataset.row),
+        col: parseInt(target.dataset.col),
+      };
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.onEditEmitter.emit({
+          row: this.data[this.editingCell.row],
+          col: this.columns.toArray()[this.editingCell.col],
+          target: target,
+        });
+      }, 1);
     }
   }
 }
