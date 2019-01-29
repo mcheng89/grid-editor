@@ -43,7 +43,8 @@ export class GridEditorComponent implements AfterViewInit {
     const headerTds = this.headerRowRef.nativeElement.querySelectorAll('td');
     const dataCellTds = this.tableScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
     this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
-    headerTds.forEach((header, idx) => {
+    for (let idx=0; idx<headerTds.length; idx++) {
+      const header = headerTds[idx];
       const dataCell = dataCellTds[idx];
       const maxWidth = Math.max(header.clientWidth, dataCell.clientWidth);
       // skip last col since that can just fill in rest of space
@@ -52,7 +53,7 @@ export class GridEditorComponent implements AfterViewInit {
         this.colWidths[idx] = maxWidth;
       }
       this.totalWidth += maxWidth;
-    });
+    }
   }
   onScroll(event) {
     this.headerScrollRef.nativeElement.scrollLeft = event.target.scrollLeft;
