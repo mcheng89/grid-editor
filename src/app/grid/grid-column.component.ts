@@ -7,8 +7,9 @@ import { GridTemplateDirective } from './grid-template.directive';
   template: '',
 })
 export class GridColumnComponent implements AfterViewInit {
-  @Input('data-field') dataField: string;
+  @Input('dataField') dataField: string;
   @Input() description: string;
+  @Input() data: any;
   
   @ContentChildren(GridTemplateDirective) templateRef: QueryList<GridTemplateDirective>;
   headerRef: any;

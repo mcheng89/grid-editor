@@ -1,7 +1,7 @@
 
 <grid-editor [data]="data" (onEditStart)="onEditStart($event)">
   <grid-column *ngFor="let col of columns"
-    [data-field]="col.dataField"
+    [dataField]="col.dataField"
     [description]="col.description"
   >
     <div *geTemplate="let item of 'header'">

@@ -163,8 +163,10 @@ export class GridEditorComponent implements AfterViewInit {
       this.selectionCols[col] = false
     }
     this.selectionRanges = [];
+    this.editingCell = {};
   }
 
+  @ViewChild('grid') gridRef: ElementRef;
   moveFocus(event) {
     const row = parseInt(this.focusCell.parentNode.dataset.row);
     const col = parseInt(this.focusCell.dataset.col);
@@ -188,6 +190,7 @@ export class GridEditorComponent implements AfterViewInit {
     }
     if (newFocusCell) {
       this.focusCell = newFocusCell;
+      this.gridRef.nativeElement.focus();
       this.setSelectionRange(this.createSelection(this.focusCell));
     }
   }
