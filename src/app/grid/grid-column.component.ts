@@ -9,6 +9,7 @@ import { GridTemplateDirective } from './grid-template.directive';
 export class GridColumnComponent implements AfterViewInit {
   @Input('dataField') dataField: string;
   @Input() description: string;
+  @Input() width: number;
   @Input() data: any;
   
   @ContentChildren(GridTemplateDirective) templateRef: QueryList<GridTemplateDirective>;

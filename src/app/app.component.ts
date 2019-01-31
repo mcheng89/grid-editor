@@ -8,7 +8,8 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponent implements OnInit {
   columns: any = [{
     dataField: "name",
-    description: "Name"
+    description: "Name",
+    width: 250
   }, {
     dataField: "address",
     description: "Address"

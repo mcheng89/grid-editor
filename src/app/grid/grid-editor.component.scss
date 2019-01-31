@@ -57,6 +57,8 @@ tr.row td.selected:before {
   bottom: 0;
   background: #005eff;
   opacity: .1;
+  /* ie11 - fix td height past content size */
+  height: 999em;
 }
 
 

@@ -3,6 +3,7 @@
     <table [style.width]="totalWidth ? totalWidth + scrollbarWidth + 'px' : 'auto'">
       <colgroup>
         <col *ngFor="let col of columns; let colIdx = index" [style.width]="colWidths[colIdx] ? colWidths[colIdx] + 'px' : 'auto'">
+        <col *ngIf="scrollbarWidth" [style.width]="scrollbarWidth + 'px'">
       </colgroup>
       <tbody>
         <tr class="header" #header>
@@ -12,6 +13,7 @@
             [attr.data-col]="colIdx">
             <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
           </td>
+          <td *ngIf="scrollbarWidth">&nbsp;</td>
         </tr>
       </tbody>
     </table>
@@ -28,7 +30,7 @@
             data-type="cell"
             [attr.data-col]="colIdx">
             <ng-container [ngSwitch]="editingCell.row == rowIdx && editingCell.col == colIdx">
-              <div *ngSwitchCase="true" class="edit-cell">
+              <div *ngSwitchCase="true" class="edit-cell ge-no-select">
                 <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
               </div>
               <span *ngSwitchDefault>{{row[col.dataField]}}</span>

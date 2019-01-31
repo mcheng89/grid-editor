@@ -40,19 +40,20 @@ export class GridEditorComponent implements AfterViewInit {
   @ViewChild('headerScroll') headerScrollRef: ElementRef;
   @ViewChild('tableScroll') tableScrollRef: ElementRef;
   resizeColHeaders() {
+    const columns = this.columns.toArray();
     const headerTds = this.headerRowRef.nativeElement.querySelectorAll('td');
     const dataCellTds = this.tableScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
     this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
     for (let idx=0; idx<headerTds.length; idx++) {
       const header = headerTds[idx];
       const dataCell = dataCellTds[idx];
-      const maxWidth = Math.max(header.clientWidth, dataCell.clientWidth);
+      const colWidth = columns[idx].width ? columns[idx].width : Math.max(header.offsetWidth, dataCell.offsetWidth);
       // skip last col since that can just fill in rest of space
       // using width='auto'
       if (idx < headerTds.length - 1) {
-        this.colWidths[idx] = maxWidth;
+        this.colWidths[idx] = colWidth;
       }
-      this.totalWidth += maxWidth;
+      this.totalWidth += colWidth;
     }
   }
   onScroll(event) {
@@ -71,14 +72,14 @@ export class GridEditorComponent implements AfterViewInit {
   }
   getSelectionTarget(event) {
     let target = event.target;
-    while (target && target != this.elementRef.nativeElement && target.tagName != "TD") {
+    while (target && target != this.elementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
       target = target.parentNode;
     }
     return target;
   }
   selectionStart(event) {
     const target = this.getSelectionTarget(event);
-    if (target.tagName == "TD") {
+    if (target && target.tagName == "TD") {
       this.focusCell = target;
       this.currentSelection = this.createSelection(target);
       this.setSelectionRange(this.currentSelection);
@@ -104,7 +105,7 @@ export class GridEditorComponent implements AfterViewInit {
       return;
     }
     const target = this.getSelectionTarget(event);
-    if (target.tagName == "TD" && this.currentSelection.endCell != target) {
+    if (target && target.tagName == "TD" && this.currentSelection.endCell != target) {
       if (this.currentSelection.type == "cell" && target.dataset.type != "cell") {
         return;
       }
@@ -199,7 +200,7 @@ export class GridEditorComponent implements AfterViewInit {
   editingCell: any = {};
   startEditing(event) {
     const target = this.getSelectionTarget(event);
-    if (target.tagName == "TD" && target.dataset.type == "cell") {
+    if (target && target.tagName == "TD" && target.dataset.type == "cell") {
       this.editingCell = {
         row: parseInt(target.parentNode.dataset.row),
         col: parseInt(target.dataset.col),
