@@ -164,11 +164,16 @@ export class GridEditorComponent implements AfterViewInit {
       this.selectionCols[col] = false
     }
     this.selectionRanges = [];
-    this.editingCell = {};
+    this.editingCell = null;
   }
 
   @ViewChild('grid') gridRef: ElementRef;
   moveFocus(event) {
+    if (this.editingCell) {
+      // when in editing mode. let the editor have keyboard control
+      return;
+    }
+
     const row = parseInt(this.focusCell.parentNode.dataset.row);
     const col = parseInt(this.focusCell.dataset.col);
     let newFocusCell;
@@ -192,12 +197,24 @@ export class GridEditorComponent implements AfterViewInit {
     if (newFocusCell) {
       this.focusCell = newFocusCell;
       this.gridRef.nativeElement.focus();
+      this.scrollCellToView(this.focusCell);
       this.setSelectionRange(this.createSelection(this.focusCell));
+    }
+  }
+  scrollCellToView(target) {
+    const scrollRef = this.tableScrollRef.nativeElement;
+    if (target.offsetLeft < scrollRef.scrollLeft) {
+      scrollRef.scrollLeft = target.offsetLeft;
+    } else {
+      const scrollRight = target.offsetLeft + target.offsetWidth - (scrollRef.scrollLeft + scrollRef.clientWidth);
+      if (scrollRight > 0) {
+        scrollRef.scrollLeft += scrollRight;
+      }
     }
   }
 
   @Output('onEditStart') onEditEmitter = new EventEmitter();
-  editingCell: any = {};
+  editingCell: any;
   startEditing(event) {
     const target = this.getSelectionTarget(event);
     if (target && target.tagName == "TD" && target.dataset.type == "cell") {

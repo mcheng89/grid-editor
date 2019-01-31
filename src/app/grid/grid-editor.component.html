@@ -29,7 +29,7 @@
             [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
             data-type="cell"
             [attr.data-col]="colIdx">
-            <ng-container [ngSwitch]="editingCell.row == rowIdx && editingCell.col == colIdx">
+            <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
               <div *ngSwitchCase="true" class="edit-cell ge-no-select">
                 <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
               </div>
