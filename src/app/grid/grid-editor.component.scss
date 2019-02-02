@@ -25,6 +25,17 @@ td {
 .fixed {
   overflow: hidden;
 }
+.grid-top {
+  display: flex;
+  flex-shrink: 0;
+}
+.top-left {
+  flex-shrink: 0;
+}
+.grid-content {
+  flex: 1;
+  display: flex;
+}
 .scrollable {
   flex: 1;
   overflow: scroll;

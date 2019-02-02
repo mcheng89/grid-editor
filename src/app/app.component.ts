@@ -7,12 +7,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit {
   columns: any = [{
+    dataField: "id",
+    description: " ",
+    fixed: true
+  }, {
     dataField: "name",
     description: "Name",
-    width: 250
+    width: 150,
   }, {
     dataField: "address",
-    description: "Address"
+    description: "Address",
+    width: 250
   }];
   data: any = [];
   
@@ -26,6 +31,7 @@ export class AppComponent implements OnInit {
     }
     for (let i=0; i<100; i++) {
       const row = {
+        id: i,
         name: "Hello" + i,
         address: "World" + i
       };

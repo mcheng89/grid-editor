@@ -17,6 +17,7 @@ export class GridEditorComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.initSelectionGrid();
     this.resizeColHeaders();
+    // todo: resize row headers...
     this.cdr.detectChanges();
     
     this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
@@ -33,31 +34,44 @@ export class GridEditorComponent implements AfterViewInit {
     this.elementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
   
-  colWidths: number[] = [];
   totalWidth: number = 0;
   scrollbarWidth: number = 0;
+  @ViewChild('fixedHeader') fixedHeaderRowRef: ElementRef;
   @ViewChild('header') headerRowRef: ElementRef;
+  @ViewChild('fixedScroll') fixedScrollRef: ElementRef;
   @ViewChild('headerScroll') headerScrollRef: ElementRef;
   @ViewChild('tableScroll') tableScrollRef: ElementRef;
   resizeColHeaders() {
     const columns = this.columns.toArray();
+    const fixedHeaderTds = this.fixedHeaderRowRef.nativeElement.querySelectorAll('td');
+    const fixedCellTds = this.fixedScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
     const headerTds = this.headerRowRef.nativeElement.querySelectorAll('td');
     const dataCellTds = this.tableScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
+    
     this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
-    for (let idx=0; idx<headerTds.length; idx++) {
-      const header = headerTds[idx];
-      const dataCell = dataCellTds[idx];
-      const colWidth = columns[idx].width ? columns[idx].width : Math.max(header.offsetWidth, dataCell.offsetWidth);
-      // skip last col since that can just fill in rest of space
-      // using width='auto'
-      if (idx < headerTds.length - 1) {
-        this.colWidths[idx] = colWidth;
+
+    let fixedIdx = 0;
+    let headerIdx = 0;
+    for (let idx=0; idx<columns.length; idx++) {
+      let header, dataCell;
+      if (columns[idx].fixed) {
+        header = fixedHeaderTds[fixedIdx];
+        dataCell = fixedCellTds[fixedIdx++];
+      } else {
+        header = headerTds[headerIdx];
+        dataCell = dataCellTds[headerIdx++];
       }
-      this.totalWidth += colWidth;
+      if (!columns[idx].width) {
+        columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
+      }
+      if (!columns[idx].fixed) {
+        this.totalWidth += columns[idx].renderedWidth;
+      }
     }
   }
   onScroll(event) {
     this.headerScrollRef.nativeElement.scrollLeft = event.target.scrollLeft;
+    this.fixedScrollRef.nativeElement.scrollTop = event.target.scrollTop;
   }
   
   focusCell: any;
