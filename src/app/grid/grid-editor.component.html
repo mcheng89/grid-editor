@@ -54,7 +54,7 @@
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <ng-container *ngFor="let col of columns; let colIdx = index">
-              <td *ngIf="col.fixed" data-type="row">
+              <td *ngIf="col.fixed" [class.selected]="selectionRows[rowIdx]" data-type="row">
                 {{row[col.dataField]}}
               </td>
             </ng-container>

@@ -99,10 +99,12 @@ export class GridEditorComponent implements AfterViewInit {
   currentSelection: any;
   selectionRanges: any[] = [];
   selectionCols: boolean[] = [];
+  selectionRows: boolean [] = [];
   selectionCells: boolean[][] = [[]];
   initSelectionGrid() {
     this.selectionCells = this.data.map(row => this.columns.map(col => false));
     this.selectionCols = this.columns.map(col => false);
+    this.selectionRows = this.data.map(row => false);
     this.selectionRanges = [];
   }
   getSelectionTarget(event) {
@@ -184,6 +186,7 @@ export class GridEditorComponent implements AfterViewInit {
     const minCol = Math.min(range.startCol, range.endCol);
     const maxCol = Math.max(range.startCol, range.endCol);
     for (let rowIdx = minRow; rowIdx <= maxRow; rowIdx++) {
+      this.selectionRows[rowIdx] = true;
       for (let colIdx = minCol; colIdx <= maxCol; colIdx++) {
         this.selectionCells[rowIdx][colIdx] = true;
         this.selectionCols[colIdx] = true;
@@ -196,7 +199,10 @@ export class GridEditorComponent implements AfterViewInit {
       for (let row=0; row<this.selectionCells.length; row++) {
         this.selectionCells[row][col] = false;
       }
-      this.selectionCols[col] = false
+      this.selectionCols[col] = false;
+    }
+    for (let row=0; row<this.selectionRows.length; row++) {
+      this.selectionRows[row] = false;
     }
     this.selectionRanges = [];
     this.editingCell = null;

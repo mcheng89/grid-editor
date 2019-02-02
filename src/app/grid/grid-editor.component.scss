@@ -50,6 +50,14 @@ tr.header td.selected {
   background: #ddd;
 }
 
+tr.header td.selected {
+  background: #ddd;
+}
+
+.fixed tr.row td.selected {
+  background: #ddd;
+}
+
 .row td {
   padding: 3px 8px;
   border-bottom: 1px solid #d9dcde;
@@ -59,7 +67,7 @@ tr.header td.selected {
 .row:nth-child(even) {
   background: #ecf1f7;
 }
-tr.row td.selected:before {
+.data-table tr.row td.selected:before {
   content: "";
   position: absolute;
   top: 0;
