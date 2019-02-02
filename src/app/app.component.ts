@@ -9,6 +9,7 @@ export class AppComponent implements OnInit {
   columns: any = [{
     dataField: "id",
     description: " ",
+    width: 25,
     fixed: true
   }, {
     dataField: "name",

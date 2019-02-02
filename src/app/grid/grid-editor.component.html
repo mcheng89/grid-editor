@@ -1,14 +1,14 @@
 <div #grid class="grid" tabindex="0">
   <div class="grid-top">
     <div class="fixed top-left">
-      <table>
+      <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
         <colgroup>
           <ng-container *ngFor="let col of columns; let colIdx = index">
             <col *ngIf="col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
           </ng-container>
         </colgroup>
         <tbody>
-          <tr class="header" #fixedHeader>
+          <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
             <ng-container *ngFor="let col of columns; let colIdx = index">
               <td *ngIf="col.fixed" data-type="row">
                 <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
@@ -27,7 +27,7 @@
           <col *ngIf="scrollbarWidth" [style.width]="scrollbarWidth + 'px'">
         </colgroup>
         <tbody>
-          <tr class="header" #header>
+          <tr class="header" #header [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
             <ng-container *ngFor="let col of columns; let colIdx = index">
               <td *ngIf="!col.fixed"
                 [class.selected]="selectionCols[colIdx]"
@@ -44,14 +44,15 @@
   </div>
   <div class="grid-content">
     <div class="fixed" #fixedScroll>
-      <table>
+      <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
         <colgroup>
           <ng-container *ngFor="let col of columns; let colIdx = index">
             <col *ngIf="col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
           </ng-container>
         </colgroup>
         <tbody>
-          <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx">
+          <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
+            [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <ng-container *ngFor="let col of columns; let colIdx = index">
               <td *ngIf="col.fixed" data-type="row">
                 {{row[col.dataField]}}
@@ -69,7 +70,8 @@
           </ng-container>
         </colgroup>
         <tbody>
-          <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx">
+          <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
+            [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <ng-container *ngFor="let col of columns; let colIdx = index">
               <td *ngIf="!col.fixed" 
                 [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"

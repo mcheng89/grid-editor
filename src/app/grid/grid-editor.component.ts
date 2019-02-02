@@ -17,8 +17,11 @@ export class GridEditorComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.initSelectionGrid();
     this.resizeColHeaders();
-    // todo: resize row headers...
     this.cdr.detectChanges();
+    setTimeout(() => {
+      this.resizeRowHeaders();
+      this.cdr.detectChanges();
+    });
     
     this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
       event.preventDefault();
@@ -34,6 +37,7 @@ export class GridEditorComponent implements AfterViewInit {
     this.elementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
   
+  fixedWidth: number = 0;
   totalWidth: number = 0;
   scrollbarWidth: number = 0;
   @ViewChild('fixedHeader') fixedHeaderRowRef: ElementRef;
@@ -64,9 +68,26 @@ export class GridEditorComponent implements AfterViewInit {
       if (!columns[idx].width) {
         columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
       }
-      if (!columns[idx].fixed) {
+      if (columns[idx].fixed) {
+        this.fixedWidth += columns[idx].renderedWidth;
+      } else {
         this.totalWidth += columns[idx].renderedWidth;
       }
+    }
+  }
+
+  headerHeight: number = 0;
+  rowHeights: number[] = [];
+  resizeRowHeaders() {
+    const fixedCellTrs = this.fixedScrollRef.nativeElement.querySelectorAll('tr');
+    const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
+
+    const fixedHeaderTr = this.fixedHeaderRowRef.nativeElement;
+    const headerTr = this.headerRowRef.nativeElement;
+    this.headerHeight = Math.max(fixedHeaderTr.offsetHeight, headerTr.offsetHeight);
+
+    for (let idx=0; idx<fixedCellTrs.length; idx++) {
+      this.rowHeights[idx] = Math.max(fixedCellTrs[idx].offsetHeight, dataCellTrs[idx].offsetHeight);
     }
   }
   onScroll(event) {
