@@ -7,7 +7,7 @@
         </colgroup>
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <td *ngFor="let col of fixedColumns; let colIdx = index" data-type="row">
+            <td *ngFor="let col of fixedColumns; let colIdx = index">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
             </td>
           </tr>
