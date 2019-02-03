@@ -245,7 +245,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
       if (col <= 0) return;
       newFocusCell = this.getOffset(row, col - 1);
     } else if (event.key == "ArrowRight" || event.key == "Right") {
-      if (col >= this.data[row].length - 1) return;
+      if (col >= this.columns.length - 1) return;
       newFocusCell = this.getOffset(row, col + 1);
     }
     if (newFocusCell) {
@@ -263,6 +263,14 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
       const scrollRight = target.left + target.width - (scrollRef.scrollLeft + scrollRef.clientWidth);
       if (scrollRight > 0) {
         scrollRef.scrollLeft += scrollRight;
+      }
+    }
+    if (target.top < scrollRef.scrollTop) {
+      scrollRef.scrollTop = target.top;
+    } else {
+      const scrollBottom = target.top + target.height - (scrollRef.scrollTop + scrollRef.clientHeight);
+      if (scrollBottom > 0) {
+        scrollRef.scrollTop += scrollBottom;
       }
     }
   }
