@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterContentInit, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 
@@ -8,12 +8,18 @@ import { GridColumnComponent } from './grid-column.component';
   styleUrls: ['./grid-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GridEditorComponent implements AfterViewInit {
+export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   @Input() data: any[];
-  @ContentChildren(GridColumnComponent) columns: QueryList<GridColumnComponent>;
+  @ContentChildren(GridColumnComponent) columnRefs: QueryList<GridColumnComponent>;
+  columns: GridColumnComponent[] = [];
+  fixedColumns: GridColumnComponent[] = [];
   
   constructor(private elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
   
+  ngAfterContentInit() {
+    this.columns = this.columnRefs.filter(col => !col.fixed);
+    this.fixedColumns = this.columnRefs.filter(col => col.fixed);
+  }
   ngAfterViewInit() {
     this.initSelectionGrid();
     this.resizeColHeaders();
@@ -46,7 +52,6 @@ export class GridEditorComponent implements AfterViewInit {
   @ViewChild('headerScroll') headerScrollRef: ElementRef;
   @ViewChild('tableScroll') tableScrollRef: ElementRef;
   resizeColHeaders() {
-    const columns = this.columns.toArray();
     const fixedHeaderTds = this.fixedHeaderRowRef.nativeElement.querySelectorAll('td');
     const fixedCellTds = this.fixedScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
     const headerTds = this.headerRowRef.nativeElement.querySelectorAll('td');
@@ -54,25 +59,21 @@ export class GridEditorComponent implements AfterViewInit {
     
     this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
 
-    let fixedIdx = 0;
-    let headerIdx = 0;
-    for (let idx=0; idx<columns.length; idx++) {
-      let header, dataCell;
-      if (columns[idx].fixed) {
-        header = fixedHeaderTds[fixedIdx];
-        dataCell = fixedCellTds[fixedIdx++];
-      } else {
-        header = headerTds[headerIdx];
-        dataCell = dataCellTds[headerIdx++];
+    for (let idx=0; idx<this.columns.length; idx++) {
+      const header = headerTds[idx];
+      const dataCell = dataCellTds[idx];
+      if (!this.columns[idx].width) {
+        this.columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
       }
-      if (!columns[idx].width) {
-        columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
+      this.totalWidth += this.columns[idx].renderedWidth;
       }
-      if (columns[idx].fixed) {
-        this.fixedWidth += columns[idx].renderedWidth;
-      } else {
-        this.totalWidth += columns[idx].renderedWidth;
+    for (let idx=0; idx<this.fixedColumns.length; idx++) {
+      const header = fixedHeaderTds[idx];
+      const dataCell = fixedCellTds[idx];
+      if (!this.fixedColumns[idx].width) {
+        this.fixedColumns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
       }
+      this.fixedWidth += this.fixedColumns[idx].renderedWidth;
     }
   }
 
@@ -267,7 +268,7 @@ export class GridEditorComponent implements AfterViewInit {
       setTimeout(() => {
         this.onEditEmitter.emit({
           row: this.data[this.editingCell.row],
-          col: this.columns.toArray()[this.editingCell.col],
+          col: this.columns[this.editingCell.col],
           target: target,
         });
       }, 1);

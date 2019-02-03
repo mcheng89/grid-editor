@@ -3,17 +3,13 @@
     <div class="fixed top-left">
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
         <colgroup>
-          <ng-container *ngFor="let col of columns; let colIdx = index">
-            <col *ngIf="col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
-          </ng-container>
+          <col *ngFor="let col of fixedColumns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <ng-container *ngFor="let col of columns; let colIdx = index">
-              <td *ngIf="col.fixed" data-type="row">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" data-type="row">
                 <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
               </td>
-            </ng-container>
           </tr>
         </tbody>
       </table>
@@ -21,21 +17,17 @@
     <div class="fixed" #headerScroll>
       <table [style.width]="totalWidth ? totalWidth + scrollbarWidth + 'px' : 'auto'">
         <colgroup>
-          <ng-container *ngFor="let col of columns; let colIdx = index">
-            <col *ngIf="!col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
-          </ng-container>
+          <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
           <col *ngIf="scrollbarWidth" [style.width]="scrollbarWidth + 'px'">
         </colgroup>
         <tbody>
           <tr class="header" #header [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <ng-container *ngFor="let col of columns; let colIdx = index">
-              <td *ngIf="!col.fixed"
+            <td *ngFor="let col of columns; let colIdx = index"
                 [class.selected]="selectionCols[colIdx]"
                 data-type="col"
                 [attr.data-col]="colIdx">
                 <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
               </td>
-            </ng-container>
             <td *ngIf="scrollbarWidth">&nbsp;</td>
           </tr>
         </tbody>
@@ -46,18 +38,14 @@
     <div class="fixed" #fixedScroll>
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
         <colgroup>
-          <ng-container *ngFor="let col of columns; let colIdx = index">
-            <col *ngIf="col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
-          </ng-container>
+          <col *ngFor="let col of fixedColumns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>
         <tbody>
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
-            <ng-container *ngFor="let col of columns; let colIdx = index">
-              <td *ngIf="col.fixed" [class.selected]="selectionRows[rowIdx]" data-type="row">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" [class.selected]="selectionRows[rowIdx]" data-type="row">
                 {{row[col.dataField]}}
               </td>
-            </ng-container>
           </tr>
         </tbody>
       </table>
@@ -65,15 +53,12 @@
     <div class="scrollable data-table" #tableScroll>
       <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'">
         <colgroup>
-          <ng-container *ngFor="let col of columns; let colIdx = index">
-            <col *ngIf="!col.fixed" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
-          </ng-container>
+          <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>
         <tbody>
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
-            <ng-container *ngFor="let col of columns; let colIdx = index">
-              <td *ngIf="!col.fixed" 
+            <td *ngFor="let col of columns; let colIdx = index" 
                 [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
                 data-type="cell"
                 [attr.data-col]="colIdx">
@@ -84,7 +69,6 @@
                   <span *ngSwitchDefault>{{row[col.dataField]}}</span>
                 </ng-container>
               </td>
-            </ng-container>
           </tr>
         </tbody>
       </table>
