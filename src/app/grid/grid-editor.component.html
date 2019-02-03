@@ -8,8 +8,8 @@
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
             <td *ngFor="let col of fixedColumns; let colIdx = index" data-type="row">
-                <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
-              </td>
+              <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -23,11 +23,11 @@
         <tbody>
           <tr class="header" #header [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index"
-                [class.selected]="selectionCols[colIdx]"
-                data-type="col"
-                [attr.data-col]="colIdx">
-                <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
-              </td>
+              [class.selected]="selectionCols[colIdx]"
+              data-type="col"
+              [attr.data-col]="colIdx">
+              <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
+            </td>
             <td *ngIf="scrollbarWidth">&nbsp;</td>
           </tr>
         </tbody>
@@ -44,8 +44,8 @@
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of fixedColumns; let colIdx = index" [class.selected]="selectionRows[rowIdx]" data-type="row">
-                {{row[col.dataField]}}
-              </td>
+              {{row[col.dataField]}}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -59,45 +59,39 @@
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index" 
-                [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
-                data-type="cell"
-                [attr.data-col]="colIdx">
-                <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
-                  <div *ngSwitchCase="true" class="edit-cell ge-no-select">
-                    <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
-                  </div>
-                  <span *ngSwitchDefault>{{row[col.dataField]}}</span>
-                </ng-container>
-              </td>
+              [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
+              data-type="cell"
+              [attr.data-col]="colIdx">
+              <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
+                <div *ngSwitchCase="true" class="edit-cell ge-no-select">
+                  <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
+                </div>
+                <span *ngSwitchDefault>{{row[col.dataField]}}</span>
+              </ng-container>
+            </td>
           </tr>
         </tbody>
       </table>
       <div class="selections">
-        <ng-template #selectionRef let-top="top" let-left="left" let-width="width" let-height="height" let-thickness="thickness">
+        <ng-template #selectionRef let-range="range" let-thickness="thickness">
           <div class="selection-border" [style.height]="thickness + 'px'" 
-            [style.top]="top + 'px'" [style.left]="left + 'px'" [style.width]="width + 'px'"></div>
+            [style.top]="range.top + 'px'" [style.left]="range.left + 'px'" [style.width]="range.width + 'px'"></div>
           <div class="selection-border" [style.height]="thickness + 'px'" 
-            [style.top]="(top + height - 2) + 'px'" [style.left]="left + 'px'" [style.width]="width + 'px'"></div>
+            [style.top]="(range.top + range.height - 2) + 'px'" [style.left]="range.left + 'px'" [style.width]="range.width + 'px'"></div>
           <div class="selection-border" [style.width]="thickness + 'px'" 
-            [style.top]="top + 'px'" [style.left]="left + 'px'" [style.height]="height + 'px'"></div>
+            [style.top]="range.top + 'px'" [style.left]="range.left + 'px'" [style.height]="range.height + 'px'"></div>
           <div class="selection-border" [style.width]="thickness + 'px'" 
-            [style.top]="top + 'px'" [style.left]="(left + width - 2) + 'px'" [style.height]="height + 'px'"></div>
+            [style.top]="range.top + 'px'" [style.left]="(range.left + range.width - 2) + 'px'" [style.height]="range.height + 'px'"></div>
         </ng-template>
         <ng-container *ngIf="focusCell">
           <ng-container *ngTemplateOutlet="selectionRef; context: {
-            top: focusCell.offsetTop,
-            left: focusCell.offsetLeft,
-            width: focusCell.offsetWidth,
-            height: focusCell.offsetHeight,
+            range: focusCell,
             thickness: 2
           }"></ng-container>
         </ng-container>
         <ng-container *ngFor="let range of selectionRanges">
           <ng-container *ngTemplateOutlet="selectionRef; context: {
-            top: range.top,
-            left: range.left,
-            width: range.width,
-            height: range.height,
+            range: range,
             thickness: 1
           }"></ng-container>
         </ng-container>

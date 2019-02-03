@@ -118,25 +118,20 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   selectionStart(event) {
     const target = this.getSelectionTarget(event);
     if (target && target.tagName == "TD") {
-      this.focusCell = target;
-      this.currentSelection = this.createSelection(target);
+      const type = target.dataset.type;
+      this.focusCell = this.getOffset(
+        type == "cell" || type == "row" ? parseInt(target.parentNode.dataset.row) : 0, 
+        type == "cell" || type == "col" ? parseInt(target.dataset.col) : 0);
+      this.currentSelection = this.createSelection(this.focusCell, type);
       this.setSelectionRange(this.currentSelection);
     }
   }
-  createSelection(target) {
-    let selection: any = {
-      type: target.dataset.type
+  createSelection(target, type) {
+    return {
+      type: type,
+      startCell: target,
+      endCell: target,
     };
-    selection.startCell = target;
-    selection.endCell = target;
-    if (target.dataset.type == "cell") {
-      selection.startRow = parseInt(target.parentNode.dataset.row);
-      selection.endRow = parseInt(target.parentNode.dataset.row);
-    }
-    // else col selection
-    selection.startCol = parseInt(target.dataset.col);
-    selection.endCol = parseInt(target.dataset.col);
-    return selection;
   }
   selectionMove(event) {
     if (!this.currentSelection) {
@@ -147,7 +142,10 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
       if (this.currentSelection.type == "cell" && target.dataset.type != "cell") {
         return;
       }
-      this.currentSelection.endCell = target;
+      const endOffset = this.getOffset(
+        parseInt(target.parentNode.dataset.row), 
+        parseInt(target.dataset.col));
+      this.currentSelection.endCell = endOffset;
       if (this.currentSelection.type == "cell") {
         this.currentSelection.endRow = parseInt(target.parentNode.dataset.row);
       }
@@ -161,31 +159,33 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   setSelectionRange(range) {
     this.deselect();
 
-    range.top = Math.min(range.startCell.offsetTop, range.endCell.offsetTop);
-    range.left = Math.min(range.startCell.offsetLeft, range.endCell.offsetLeft);
-    if (range.startCell.offsetLeft < range.endCell.offsetLeft) {
-      range.width = range.endCell.offsetLeft - range.startCell.offsetLeft + range.endCell.offsetWidth;
+    if (range.startCell.left < range.endCell.left) {
+      range.left = range.startCell.left;
+      range.width = range.endCell.left - range.startCell.left + range.endCell.width;
     } else {
-      range.width = range.startCell.offsetLeft - range.endCell.offsetLeft + range.startCell.offsetWidth;
+      range.left = range.endCell.left;
+      range.width = range.startCell.left - range.endCell.left + range.startCell.width;
     }
-    if (range.startCell.offsetTop <= range.endCell.offsetTop) {
-      range.height = range.endCell.offsetTop - range.startCell.offsetTop + range.endCell.offsetHeight;
+    if (range.startCell.top <= range.endCell.top) {
+      range.top = range.startCell.top;
+      range.height = range.endCell.top - range.startCell.top + range.endCell.height;
     } else {
-      range.height = range.startCell.offsetTop - range.endCell.offsetTop + range.startCell.offsetHeight;
+      range.top = range.endCell.top;
+      range.height = range.startCell.top - range.endCell.top + range.startCell.height;
     }
     this.selectionRanges = [range];
 
     let minRow, maxRow; 
     if (range.type == "cell") {
-      minRow = Math.min(range.startRow, range.endRow);
-      maxRow = Math.max(range.startRow, range.endRow);
+      minRow = Math.min(range.startCell.row, range.endCell.row);
+      maxRow = Math.max(range.startCell.row, range.endCell.row);
     } else {
       // else col selection
       minRow = 0;
       maxRow = this.data.length - 1;
     }
-    const minCol = Math.min(range.startCol, range.endCol);
-    const maxCol = Math.max(range.startCol, range.endCol);
+    const minCol = Math.min(range.startCell.col, range.endCell.col);
+    const maxCol = Math.max(range.startCell.col, range.endCell.col);
     for (let rowIdx = minRow; rowIdx <= maxRow; rowIdx++) {
       this.selectionRows[rowIdx] = true;
       for (let colIdx = minCol; colIdx <= maxCol; colIdx++) {
@@ -209,46 +209,62 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     this.editingCell = null;
   }
 
+  getOffset(row, col) {
+    // using offset height forces a rerender/performance hit
+    let top = 0;
+    for (let i=0; i<row; i++) {
+      top += this.rowHeights[i];
+    }
+    let left = 0;
+    for (let i=0; i<col; i++) {
+      left += this.columns[i].renderedWidth;
+    }
+    return {
+      row: row,
+      col: col,
+      top: top,
+      left: left,
+      height: this.rowHeights[row],
+      width: this.columns[col].renderedWidth,
+    };
+  }
+
   @ViewChild('grid') gridRef: ElementRef;
   moveFocus(event) {
-    if (this.editingCell) {
+    if (this.editingCell || !this.focusCell) {
       // when in editing mode. let the editor have keyboard control
       return;
     }
 
-    const row = parseInt(this.focusCell.parentNode.dataset.row);
-    const col = parseInt(this.focusCell.dataset.col);
+    const row = this.focusCell.row;
+    const col = this.focusCell.col;
     let newFocusCell;
     if (event.key == "ArrowUp" || event.key == "Up") {
       if (row <= 0) return;
-      const table = this.focusCell.parentNode.parentNode;
-      newFocusCell = table.children[row - 1].children[col];
+      newFocusCell = this.getOffset(row - 1, col);
     } else if (event.key == "ArrowDown" || event.key == "Down") {
       if (row >= this.data.length - 1) return;
-      const table = this.focusCell.parentNode.parentNode;
-      newFocusCell = table.children[row + 1].children[col];
+      newFocusCell = this.getOffset(row + 1, col);
     } else if (event.key == "ArrowLeft" || event.key == "Left") {
       if (col <= 0) return;
-      const rowEl = this.focusCell.parentNode;
-      newFocusCell = rowEl.children[col - 1];
+      newFocusCell = this.getOffset(row, col - 1);
     } else if (event.key == "ArrowRight" || event.key == "Right") {
       if (col >= this.data[row].length - 1) return;
-      const rowEl = this.focusCell.parentNode;
-      newFocusCell = rowEl.children[col + 1];
+      newFocusCell = this.getOffset(row, col + 1);
     }
     if (newFocusCell) {
       this.focusCell = newFocusCell;
       this.gridRef.nativeElement.focus();
       this.scrollCellToView(this.focusCell);
-      this.setSelectionRange(this.createSelection(this.focusCell));
+      this.setSelectionRange(this.createSelection(this.focusCell, "cell"));
     }
   }
   scrollCellToView(target) {
     const scrollRef = this.tableScrollRef.nativeElement;
-    if (target.offsetLeft < scrollRef.scrollLeft) {
-      scrollRef.scrollLeft = target.offsetLeft;
+    if (target.left < scrollRef.scrollLeft) {
+      scrollRef.scrollLeft = target.left;
     } else {
-      const scrollRight = target.offsetLeft + target.offsetWidth - (scrollRef.scrollLeft + scrollRef.clientWidth);
+      const scrollRight = target.left + target.width - (scrollRef.scrollLeft + scrollRef.clientWidth);
       if (scrollRight > 0) {
         scrollRef.scrollLeft += scrollRight;
       }
