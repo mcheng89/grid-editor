@@ -34,8 +34,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
 
     this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
-
-    this.elementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
   
   fixedWidth: number = 0;
@@ -97,36 +95,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   selectionRows: boolean [] = [];
   selectionCells: boolean[][] = [[]];
 
-  @ViewChild('grid') gridRef: ElementRef;
-  moveFocus(event) {
-    if (this.editingCell || !this.focusCell) {
-      // when in editing mode. let the editor have keyboard control
-      return;
-    }
-
-    const row = this.focusCell.row;
-    const col = this.focusCell.col;
-    let newFocusCell;
-    if (event.key == "ArrowUp" || event.key == "Up") {
-      if (row <= 0) return;
-      newFocusCell = this.getOffset(row - 1, col);
-    } else if (event.key == "ArrowDown" || event.key == "Down") {
-      if (row >= this.data.length - 1) return;
-      newFocusCell = this.getOffset(row + 1, col);
-    } else if (event.key == "ArrowLeft" || event.key == "Left") {
-      if (col <= 0) return;
-      newFocusCell = this.getOffset(row, col - 1);
-    } else if (event.key == "ArrowRight" || event.key == "Right") {
-      if (col >= this.columns.length - 1) return;
-      newFocusCell = this.getOffset(row, col + 1);
-    }
-    if (newFocusCell) {
-      this.focusCell = newFocusCell;
-      this.gridRef.nativeElement.focus();
-      this.scrollCellToView(this.focusCell);
-      // this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
-    }
-  }
   scrollCellToView(target) {
     const scrollRef = this.tableScrollRef.nativeElement;
     if (target.left < scrollRef.scrollLeft) {
@@ -147,12 +115,20 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     }
   }
 
+  @ViewChild('grid') gridRef: ElementRef;
   setSelection(event) {
     this.editingCell = null;
     this.selectionRanges = event.ranges;
     this.selectionCols = event.cols;
     this.selectionRows = event.rows;
     this.selectionCells = event.cells;
+
+    this.gridRef.nativeElement.focus();
+    this.focusCell = event.focus;
+    this.scrollCellToView(this.focusCell);
+  }
+  onFocusChanging(event) {
+    event.cancel = this.editingCell;
   }
 
   getSelectionTarget(event) {

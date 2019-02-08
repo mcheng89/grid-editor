@@ -13,11 +13,14 @@ export class GridSelectionComponent implements AfterViewInit {
   @Input() rowHeights: number[];
 
   @Output() selection = new EventEmitter<any>();
+  @Output() focusChanging = new EventEmitter<any>();
 
   ngAfterViewInit() {
     this.gridElementRef.nativeElement.addEventListener('mousedown', this.selectionStart.bind(this));
     this.gridElementRef.nativeElement.addEventListener('mousemove', this.selectionMove.bind(this));
     document.addEventListener('mouseup', this.selectionEnd.bind(this));
+
+    this.gridElementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
 
   focusCell: any;
@@ -27,13 +30,6 @@ export class GridSelectionComponent implements AfterViewInit {
   selectionRows: boolean [] = [];
   selectionCells: boolean[][] = [[]];
 
-  getSelectionTarget(event) {
-    let target = event.target;
-    while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
-      target = target.parentNode;
-    }
-    return target;
-  }
   selectionStart(event) {
     const target = this.getSelectionTarget(event);
     if (target && target.tagName == "TD") {
@@ -110,6 +106,7 @@ export class GridSelectionComponent implements AfterViewInit {
     }
 
     this.selection.emit({
+      focus: this.focusCell,
       ranges: this.selectionRanges,
       rows: this.selectionRows,
       cols: this.selectionCols,
@@ -123,6 +120,46 @@ export class GridSelectionComponent implements AfterViewInit {
     this.selectionRanges = [];
   }
   
+  moveFocus(event) {
+    let cancelableEvent = {cancel: false};
+    this.focusChanging.emit(cancelableEvent);
+
+    if (cancelableEvent.cancel || !this.focusCell) {
+      // when in editing mode. let the editor have keyboard control
+      return;
+    }
+
+    const row = this.focusCell.row;
+    const col = this.focusCell.col;
+    let newFocusCell;
+    if (event.key == "ArrowUp" || event.key == "Up") {
+      if (row <= 0) return;
+      newFocusCell = this.getOffset(row - 1, col);
+    } else if (event.key == "ArrowDown" || event.key == "Down") {
+      if (row >= this.data.length - 1) return;
+      newFocusCell = this.getOffset(row + 1, col);
+    } else if (event.key == "ArrowLeft" || event.key == "Left") {
+      if (col <= 0) return;
+      newFocusCell = this.getOffset(row, col - 1);
+    } else if (event.key == "ArrowRight" || event.key == "Right") {
+      if (col >= this.columns.length - 1) return;
+      newFocusCell = this.getOffset(row, col + 1);
+    }
+    if (newFocusCell) {
+      this.focusCell = newFocusCell;
+      // this.gridRef.nativeElement.focus();
+      // this.scrollCellToView(this.focusCell);
+      this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
+    }
+  }
+
+  getSelectionTarget(event) {
+    let target = event.target;
+    while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
+      target = target.parentNode;
+    }
+    return target;
+  }
   getOffset(row, col) {
     // using offset height forces a rerender/performance hit
     let top = 0;
