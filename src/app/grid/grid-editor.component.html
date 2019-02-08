@@ -1,4 +1,6 @@
 <div #grid class="grid" tabindex="0">
+  <grid-selection [gridElementRef]="elementRef"
+    [columns]="columns" [data]="data" [rowHeights]="rowHeights" (selection)="setSelection($event)"></grid-selection>
   <div class="grid-top">
     <div class="fixed top-left">
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
