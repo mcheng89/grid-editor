@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef } from '@angular/core';
 
+import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
 
 @Component({
@@ -8,6 +9,7 @@ import { GridSelectionService } from './grid-selection.service';
 })
 export class GridEditingComponent implements AfterViewInit {
   @Input() gridElementRef: ElementRef;
+  @Input() columns: GridColumnComponent[];
   @Input() editingCell: any;
 
   @Output() editCellChange = new EventEmitter<any>();
@@ -52,9 +54,16 @@ export class GridEditingComponent implements AfterViewInit {
     if (this.editingCell) {
       console.log(event);
       if (event.key == "Tab") {
-        const target = {row: this.editingCell.row, col: this.editingCell.col + 1};
-        this.gridSelectionSvc.setFocusCell(this, target);
-        this.editCellChange.emit(target);
+        let target;
+        if (event.shiftKey && this.editingCell.col > 0) {
+          target = {row: this.editingCell.row, col: this.editingCell.col - 1};
+        } else if (!event.shiftKey && this.editingCell.col < this.columns.length - 1) {
+          target = {row: this.editingCell.row, col: this.editingCell.col + 1};
+        }
+        if (target) {
+          this.gridSelectionSvc.setFocusCell(this, target);
+          this.editCellChange.emit(target);
+        }
         event.preventDefault();
       }
     }

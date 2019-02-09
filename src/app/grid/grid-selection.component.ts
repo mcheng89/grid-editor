@@ -146,13 +146,14 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     } else if (event.key == "ArrowDown" || event.key == "Down") {
       if (row >= this.rowHeights.length - 1) return;
       newFocusCell = {row: row + 1, col: col};
-    } else if (event.key == "ArrowLeft" || event.key == "Left") {
+    } else if (event.key == "ArrowLeft" || event.key == "Left" || (event.key == "Tab" && event.shiftKey)) {
+      event.preventDefault();
       if (col <= 0) return;
       newFocusCell = {row: row, col: col - 1};
     } else if (event.key == "ArrowRight" || event.key == "Right" || event.key == "Tab") {
+      event.preventDefault();
       if (col >= this.columns.length - 1) return;
       newFocusCell = {row: row, col: col + 1};
-      event.preventDefault();
     }
     if (newFocusCell) {
       this.gridSelectionSvc.setFocusCell(this, newFocusCell);

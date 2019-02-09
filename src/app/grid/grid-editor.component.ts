@@ -33,8 +33,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
       event.preventDefault();
     });
     this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
-
-    // this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
   }
   
   fixedWidth: number = 0;
@@ -72,6 +70,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   }
 
   headerHeight: number = 0;
+  totalHeight: number = 0;
   rowHeights: number[] = [];
   resizeRowHeaders() {
     const fixedCellTrs = this.fixedScrollRef.nativeElement.querySelectorAll('tr');
@@ -82,8 +81,10 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     this.headerHeight = Math.max(fixedHeaderTr.offsetHeight, headerTr.offsetHeight);
 
     this.rowHeights = [];
+    this.totalHeight = 0;
     for (let idx=0; idx<fixedCellTrs.length - 1; idx++) {
       this.rowHeights[idx] = Math.max(fixedCellTrs[idx].offsetHeight, dataCellTrs[idx].offsetHeight);
+      this.totalHeight += this.rowHeights[idx];
     }
   }
   onScroll(event) {

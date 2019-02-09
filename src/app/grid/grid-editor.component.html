@@ -4,7 +4,7 @@
     (selection)="onSelection($event)"
     (focusChanging)="onFocusChanging($event)">
   </grid-selection>
-  <grid-editing [gridElementRef]="elementRef" 
+  <grid-editing [gridElementRef]="elementRef" [columns]="columns"
     [editingCell]="editingCell" (editCellChange)="onEditCell($event)">
   </grid-editing>
   <div class="grid-top">
@@ -60,7 +60,7 @@
       </table>
     </div>
     <div class="scrollable data-table" #tableScroll>
-      <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'">
+      <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'" [style.height]="totalHeight ? totalHeight + 'px' : 'auto'">
         <colgroup>
           <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>
@@ -72,7 +72,7 @@
               data-type="cell"
               [attr.data-col]="colIdx">
               <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
-                <div *ngSwitchCase="true" class="edit-cell ge-no-select" [style.height]="rowHeights[rowIdx] + 'px'">
+                <div *ngSwitchCase="true" class="edit-cell ge-no-select">
                   <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: {data: row, column: col}}"></ng-template>
                 </div>
                 <span *ngSwitchDefault>{{row[col.dataField]}}</span>
