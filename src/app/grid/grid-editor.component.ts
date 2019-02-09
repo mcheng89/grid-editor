@@ -1,11 +1,13 @@
 import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterContentInit, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
+import { GridSelectionService } from './grid-selection.service';
 
 @Component({
   selector: 'grid-editor',
   templateUrl: './grid-editor.component.html',
   styleUrls: ['./grid-editor.component.scss'],
+  providers: [GridSelectionService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GridEditorComponent implements AfterContentInit, AfterViewInit {
@@ -22,7 +24,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   }
   ngAfterViewInit() {
     this.resizeColHeaders();
-    this.cdr.detectChanges();
     setTimeout(() => {
       this.resizeRowHeaders();
       this.cdr.detectChanges();
@@ -33,7 +34,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     });
     this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
 
-    this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
+    // this.elementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
   }
   
   fixedWidth: number = 0;
@@ -117,16 +118,8 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   }
 
   @ViewChild('grid') gridRef: ElementRef;
-  setSelection(event) {
-    if (this.editingCell) {
-      this.rowHeights[this.editingCell.row] = null;
-      setTimeout(() => {
-        this.resizeRowHeaders();
-        this.cdr.detectChanges();
-      });
-    }
-
-    this.editingCell = null;
+  onSelection(event) {
+    console.log(event)
     this.selectionRanges = event.ranges;
     this.selectionCols = event.cols;
     this.selectionRows = event.rows;
@@ -136,51 +129,27 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     this.focusCell = event.focus;
     this.scrollCellToView(this.focusCell);
   }
-  onFocusChanging(event) {
-    event.cancel = this.editingCell;
-  }
 
-  getSelectionTarget(event) {
-    let target = event.target;
-    while (target && target != this.elementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
-      target = target.parentNode;
-    }
-    return target;
-  }
-  getOffset(row, col) {
-    // using offset height forces a rerender/performance hit
-    let top = 0;
-    for (let i=0; i<row; i++) {
-      top += this.rowHeights[i];
-    }
-    let left = 0;
-    for (let i=0; i<col; i++) {
-      left += this.columns[i].renderedWidth;
-    }
-    return {
-      row: row,
-      col: col,
-      top: top,
-      left: left,
-      height: this.rowHeights[row],
-      width: this.columns[col].renderedWidth,
-    };
-  }
-
-  @Output('onEditStart') onEditEmitter = new EventEmitter();
+  @Output('onEditStart') onEditStart = new EventEmitter();
   editingCell: any;
-  startEditing(event) {
-    const target = this.getSelectionTarget(event);
-    if (target && target.tagName == "TD" && target.dataset.type == "cell") {
-      this.editingCell = {
-        row: parseInt(target.parentNode.dataset.row),
-        col: parseInt(target.dataset.col),
-      };
-      this.cdr.detectChanges();
+  onEditCell(event) {
+    if (this.editingCell) {
+      console.log(this.editingCell);
+      // resize row height after editing a cell
+      this.rowHeights[this.editingCell.row] = null;
       setTimeout(() => {
-        this.onEditEmitter.emit({
-          row: this.data[this.editingCell.row],
-          col: this.columns[this.editingCell.col],
+        this.resizeRowHeaders();
+        this.cdr.detectChanges();
+      });
+    }
+    this.editingCell = event;
+    if (event) {
+      setTimeout(() => {
+        const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
+        const target = dataCellTrs[event.row].children[event.col];
+        this.onEditStart.emit({
+          row: this.data[event.row],
+          col: this.columns[event.col],
           target: target,
         });
       }, 1);

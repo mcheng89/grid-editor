@@ -8,10 +8,10 @@
     [data]="col"
   >
     <div *geTemplate="let item of 'header'">
-      <div class="ge-no-select" style="padding: 5px 8px; white-space: nowrap;">{{item.description}}</div>
+      <div class="ge-no-select1" style="padding: 5px 8px; white-space: wrap;">{{item.description}}</div>
     </div>
-    <div *geTemplate="let item of 'editor'; let col=col">
-      <input style="width: 100%;" type="text" [value]="item[col.dataField]">
-    </div>
+    <ng-container *geTemplate="let item of 'editor'">
+      <input style="width: 100%; height: 100%;" type="text" [(ngModel)]="item.data[item.column.dataField]">
+    </ng-container>
   </grid-column>
 </grid-editor>

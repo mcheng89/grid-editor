@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
+import { GridSelectionService } from './grid-selection.service';
 
 @Component({
   selector: 'grid-selection',
@@ -13,6 +14,10 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
 
   @Output() selection = new EventEmitter<any>();
   @Output() focusChanging = new EventEmitter<any>();
+
+  constructor(private gridSelectionSvc: GridSelectionService) {
+    this.gridSelectionSvc.onFocusChange(this).subscribe(newFocusCell => this.setFocusCell(newFocusCell));
+  }
 
   ngAfterViewInit() {
     this.gridElementRef.nativeElement.addEventListener('mousedown', this.selectionStart.bind(this));
@@ -57,6 +62,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
           col: type == "col" ? parseInt(target.dataset.col) : this.columns.length - 1,
         };
       }
+      this.gridSelectionSvc.setFocusCell(this, this.focusCell);
       this.currentSelection = this.createSelection(this.focusCell, endCell, type);
       this.setSelectionRange(this.currentSelection);
     }
@@ -73,7 +79,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       return;
     }
     const target = this.getSelectionTarget(event);
-    if (target && target.tagName == "TD" && this.currentSelection.endCell != target) {
+    if (target && target.tagName == "TD") {
       if (this.currentSelection.type == "cell" && target.dataset.type != "cell") {
         return;
       }
@@ -82,6 +88,10 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
         row: startType != "col" ? parseInt(target.parentNode.dataset.row) : this.rowHeights.length - 1, 
         col: startType != "row" ? parseInt(target.dataset.col) : this.columns.length - 1,
       };
+      if (endOffset.row == this.currentSelection.endCell.row 
+        && endOffset.col == this.currentSelection.endCell.col) {
+        return;
+      }
       this.currentSelection.endCell = endOffset;
       this.setSelectionRange(this.currentSelection);
     }
@@ -122,10 +132,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   }
   
   moveFocus(event) {
-    let cancelableEvent = {cancel: false};
-    this.focusChanging.emit(cancelableEvent);
-
-    if (cancelableEvent.cancel || !this.focusCell) {
+    if (!this.gridSelectionSvc.keyboardFocusChanging() || !this.focusCell) {
       // when in editing mode. let the editor have keyboard control
       return;
     }
@@ -142,14 +149,19 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     } else if (event.key == "ArrowLeft" || event.key == "Left") {
       if (col <= 0) return;
       newFocusCell = {row: row, col: col - 1};
-    } else if (event.key == "ArrowRight" || event.key == "Right") {
+    } else if (event.key == "ArrowRight" || event.key == "Right" || event.key == "Tab") {
       if (col >= this.columns.length - 1) return;
       newFocusCell = {row: row, col: col + 1};
+      event.preventDefault();
     }
     if (newFocusCell) {
-      this.focusCell = newFocusCell;
-      this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
+      this.gridSelectionSvc.setFocusCell(this, newFocusCell);
+      this.setFocusCell(newFocusCell);
     }
+  }
+  setFocusCell(cell) {
+    this.focusCell = cell;
+    this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
   }
 
   setSelectionSizes() {

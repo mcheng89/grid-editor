@@ -3,24 +3,17 @@ import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { GridEditorComponent } from './grid/grid-editor.component';
-import { GridColumnComponent } from './grid/grid-column.component';
-import { GridSelectionComponent } from './grid/grid-selection.component';
-import { GridTemplateDirective } from './grid/grid-template.directive';
+import { GridModule } from './grid/grid.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    GridEditorComponent,
-    GridColumnComponent,
-    GridSelectionComponent,
-    GridTemplateDirective
   ],
   imports: [
     BrowserModule,
-    FormsModule
+    FormsModule,
+    GridModule
   ],
-  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

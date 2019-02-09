@@ -1,4 +1,4 @@
-import { Component, Input, ContentChildren, QueryList, OnInit, AfterViewInit } from '@angular/core';
+import { Component, Input, ContentChildren, QueryList, OnInit, AfterContentInit } from '@angular/core';
 
 import { GridTemplateDirective } from './grid-template.directive';
 
@@ -6,7 +6,7 @@ import { GridTemplateDirective } from './grid-template.directive';
   selector: 'grid-column',
   template: '',
 })
-export class GridColumnComponent implements OnInit, AfterViewInit {
+export class GridColumnComponent implements OnInit, AfterContentInit {
   @Input('dataField') dataField: string;
   @Input() description: string;
   @Input() width: number;
@@ -22,7 +22,7 @@ export class GridColumnComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.renderedWidth = this.width;
   }
-  ngAfterViewInit() {
+  ngAfterContentInit() {
     this.headerRef = this.templateRef.find(tpl => {
       return tpl.letOf == 'header';
     }).templateRef;

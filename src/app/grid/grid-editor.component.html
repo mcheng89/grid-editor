@@ -1,9 +1,12 @@
 <div #grid class="grid" tabindex="0">
   <grid-selection [gridElementRef]="elementRef"
     [columns]="columns" [rowHeights]="rowHeights" 
-    (selection)="setSelection($event)"
+    (selection)="onSelection($event)"
     (focusChanging)="onFocusChanging($event)">
   </grid-selection>
+  <grid-editing [gridElementRef]="elementRef" 
+    [editingCell]="editingCell" (editCellChange)="onEditCell($event)">
+  </grid-editing>
   <div class="grid-top">
     <div class="fixed top-left">
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
