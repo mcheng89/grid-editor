@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 
@@ -6,10 +6,9 @@ import { GridColumnComponent } from './grid-column.component';
   selector: 'grid-selection',
   template: '',
 })
-export class GridSelectionComponent implements AfterViewInit {
+export class GridSelectionComponent implements AfterViewInit, OnChanges {
   @Input() gridElementRef: ElementRef;
   @Input() columns: GridColumnComponent[];
-  @Input() data: any[];
   @Input() rowHeights: number[];
 
   @Output() selection = new EventEmitter<any>();
@@ -23,6 +22,19 @@ export class GridSelectionComponent implements AfterViewInit {
     this.gridElementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.rowHeights && this.focusCell) {
+      this.setSelectionSizes();
+      this.selection.emit({
+        focus: this.focusCell,
+        ranges: this.selectionRanges,
+        rows: this.selectionRows,
+        cols: this.selectionCols,
+        cells: this.selectionCells,
+      });
+    }
+  }
+
   focusCell: any;
   currentSelection: any;
   selectionRanges: any[] = [];
@@ -34,14 +46,16 @@ export class GridSelectionComponent implements AfterViewInit {
     const target = this.getSelectionTarget(event);
     if (target && target.tagName == "TD") {
       const type = target.dataset.type;
-      this.focusCell = this.getOffset(
-        type != "col" ? parseInt(target.parentNode.dataset.row) : 0, 
-        type != "row" ? parseInt(target.dataset.col) : 0);
+      this.focusCell = {
+        row: type != "col" ? parseInt(target.parentNode.dataset.row) : 0, 
+        col: type != "row" ? parseInt(target.dataset.col) : 0,
+      };
       let endCell = this.focusCell;
       if (type != "cell") {
-        endCell = this.getOffset(
-          type == "row" ? parseInt(target.parentNode.dataset.row) : this.data.length - 1, 
-          type == "col" ? parseInt(target.dataset.col) : this.columns.length - 1);
+        endCell = {
+          row: type == "row" ? parseInt(target.parentNode.dataset.row) : this.rowHeights.length - 1, 
+          col: type == "col" ? parseInt(target.dataset.col) : this.columns.length - 1,
+        };
       }
       this.currentSelection = this.createSelection(this.focusCell, endCell, type);
       this.setSelectionRange(this.currentSelection);
@@ -64,9 +78,10 @@ export class GridSelectionComponent implements AfterViewInit {
         return;
       }
       const startType = this.currentSelection.type;
-      const endOffset = this.getOffset(
-        startType != "col" ? parseInt(target.parentNode.dataset.row) : this.data.length - 1, 
-        startType != "row" ? parseInt(target.dataset.col) : this.columns.length - 1);
+      const endOffset = {
+        row: startType != "col" ? parseInt(target.parentNode.dataset.row) : this.rowHeights.length - 1, 
+        col: startType != "row" ? parseInt(target.dataset.col) : this.columns.length - 1,
+      };
       this.currentSelection.endCell = endOffset;
       this.setSelectionRange(this.currentSelection);
     }
@@ -76,25 +91,11 @@ export class GridSelectionComponent implements AfterViewInit {
   }
   setSelectionRange(range) {
     this.deselect();
-
-    if (range.startCell.left < range.endCell.left) {
-      range.left = range.startCell.left;
-      range.width = range.endCell.left - range.startCell.left + range.endCell.width;
-    } else {
-      range.left = range.endCell.left;
-      range.width = range.startCell.left - range.endCell.left + range.startCell.width;
-    }
-    if (range.startCell.top <= range.endCell.top) {
-      range.top = range.startCell.top;
-      range.height = range.endCell.top - range.startCell.top + range.endCell.height;
-    } else {
-      range.top = range.endCell.top;
-      range.height = range.startCell.top - range.endCell.top + range.startCell.height;
-    }
     this.selectionRanges = [range];
+    this.setSelectionSizes();
 
     const minRow = range.type != "col" ? Math.min(range.startCell.row, range.endCell.row) : 0;
-    const maxRow = range.type != "col" ? Math.max(range.startCell.row, range.endCell.row) : this.data.length - 1;
+    const maxRow = range.type != "col" ? Math.max(range.startCell.row, range.endCell.row) : this.rowHeights.length - 1;
     const minCol = range.type != "row" ? Math.min(range.startCell.col, range.endCell.col) : 0;
     const maxCol = range.type != "row" ? Math.max(range.startCell.col, range.endCell.col) : this.columns.length - 1;
     for (let rowIdx = minRow; rowIdx <= maxRow; rowIdx++) {
@@ -114,9 +115,9 @@ export class GridSelectionComponent implements AfterViewInit {
     });
   }
   deselect() {
-    this.selectionCells = this.data.map(row => this.columns.map(col => false));
+    this.selectionCells = this.rowHeights.map(row => this.columns.map(col => false));
     this.selectionCols = this.columns.map(col => false);
-    this.selectionRows = this.data.map(row => false);
+    this.selectionRows = this.rowHeights.map(row => false);
     this.selectionRanges = [];
   }
   
@@ -134,23 +135,44 @@ export class GridSelectionComponent implements AfterViewInit {
     let newFocusCell;
     if (event.key == "ArrowUp" || event.key == "Up") {
       if (row <= 0) return;
-      newFocusCell = this.getOffset(row - 1, col);
+      newFocusCell = {row: row - 1, col: col};
     } else if (event.key == "ArrowDown" || event.key == "Down") {
-      if (row >= this.data.length - 1) return;
-      newFocusCell = this.getOffset(row + 1, col);
+      if (row >= this.rowHeights.length - 1) return;
+      newFocusCell = {row: row + 1, col: col};
     } else if (event.key == "ArrowLeft" || event.key == "Left") {
       if (col <= 0) return;
-      newFocusCell = this.getOffset(row, col - 1);
+      newFocusCell = {row: row, col: col - 1};
     } else if (event.key == "ArrowRight" || event.key == "Right") {
       if (col >= this.columns.length - 1) return;
-      newFocusCell = this.getOffset(row, col + 1);
+      newFocusCell = {row: row, col: col + 1};
     }
     if (newFocusCell) {
       this.focusCell = newFocusCell;
-      // this.gridRef.nativeElement.focus();
-      // this.scrollCellToView(this.focusCell);
       this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
     }
+  }
+
+  setSelectionSizes() {
+    this.focusCell = this.getOffset(this.focusCell.row, this.focusCell.col);
+    this.selectionRanges.forEach(range => {
+      range.startCell = this.getOffset(range.startCell.row, range.startCell.col);
+      range.endCell = this.getOffset(range.endCell.row, range.endCell.col);
+
+      if (range.startCell.left < range.endCell.left) {
+        range.left = range.startCell.left;
+        range.width = range.endCell.left - range.startCell.left + range.endCell.width;
+      } else {
+        range.left = range.endCell.left;
+        range.width = range.startCell.left - range.endCell.left + range.startCell.width;
+      }
+      if (range.startCell.top <= range.endCell.top) {
+        range.top = range.startCell.top;
+        range.height = range.endCell.top - range.startCell.top + range.endCell.height;
+      } else {
+        range.top = range.endCell.top;
+        range.height = range.startCell.top - range.endCell.top + range.startCell.height;
+      }
+    });
   }
 
   getSelectionTarget(event) {

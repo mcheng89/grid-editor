@@ -1,6 +1,6 @@
 <div #grid class="grid" tabindex="0">
   <grid-selection [gridElementRef]="elementRef"
-    [columns]="columns" [data]="data" [rowHeights]="rowHeights" 
+    [columns]="columns" [rowHeights]="rowHeights" 
     (selection)="setSelection($event)"
     (focusChanging)="onFocusChanging($event)">
   </grid-selection>
@@ -52,6 +52,7 @@
               {{row[col.dataField]}}
             </td>
           </tr>
+          <tr [style.height]="scrollbarWidth + 'px'"><td></td></tr>
         </tbody>
       </table>
     </div>
@@ -68,8 +69,8 @@
               data-type="cell"
               [attr.data-col]="colIdx">
               <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
-                <div *ngSwitchCase="true" class="edit-cell ge-no-select">
-                  <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: row, col: col}"></ng-template>
+                <div *ngSwitchCase="true" class="edit-cell ge-no-select" [style.height]="rowHeights[rowIdx] + 'px'">
+                  <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: {data: row, column: col}}"></ng-template>
                 </div>
                 <span *ngSwitchDefault>{{row[col.dataField]}}</span>
               </ng-container>

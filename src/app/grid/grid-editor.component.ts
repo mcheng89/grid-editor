@@ -80,7 +80,8 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     const headerTr = this.headerRowRef.nativeElement;
     this.headerHeight = Math.max(fixedHeaderTr.offsetHeight, headerTr.offsetHeight);
 
-    for (let idx=0; idx<fixedCellTrs.length; idx++) {
+    this.rowHeights = [];
+    for (let idx=0; idx<fixedCellTrs.length - 1; idx++) {
       this.rowHeights[idx] = Math.max(fixedCellTrs[idx].offsetHeight, dataCellTrs[idx].offsetHeight);
     }
   }
@@ -117,6 +118,14 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
 
   @ViewChild('grid') gridRef: ElementRef;
   setSelection(event) {
+    if (this.editingCell) {
+      this.rowHeights[this.editingCell.row] = null;
+      setTimeout(() => {
+        this.resizeRowHeaders();
+        this.cdr.detectChanges();
+      });
+    }
+
     this.editingCell = null;
     this.selectionRanges = event.ranges;
     this.selectionCols = event.cols;
