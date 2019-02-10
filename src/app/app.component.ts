@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
   data: any = [];
   
   ngOnInit() {
-    const colCnt = 100;
+    const colCnt = 30;
     for (let i=0; i<colCnt; i++) {
       this.columns.push({
         dataField: "col" + i,

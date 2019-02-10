@@ -58,8 +58,12 @@ export class GridEditingComponent implements AfterViewInit {
     this.editCellChange.emit(target);
   }
   editDataChange() {
-    this.editingCell.data[this.editingCell.column.dataField] = this.editingCell.value;
-    this.dataChange.emit([this.editingCell.row]);
+    const oldValue = this.editingCell.data[this.editingCell.column.dataField];
+    const newValue = this.editingCell.value;
+    if (oldValue != newValue) {
+      this.editingCell.data[this.editingCell.column.dataField] = this.editingCell.value;
+      this.dataChange.emit([this.editingCell.row]);
+    }
   }
 
   getSelectionTarget(event) {
