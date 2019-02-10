@@ -102,19 +102,20 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   setSelectionRange(range) {
     this.deselect();
     this.selectionRanges = [range];
-    this.setSelectionSizes();
 
-    const minRow = range.type != "col" ? Math.min(range.startCell.row, range.endCell.row) : 0;
-    const maxRow = range.type != "col" ? Math.max(range.startCell.row, range.endCell.row) : this.rowHeights.length - 1;
-    const minCol = range.type != "row" ? Math.min(range.startCell.col, range.endCell.col) : 0;
-    const maxCol = range.type != "row" ? Math.max(range.startCell.col, range.endCell.col) : this.columns.length - 1;
-    for (let rowIdx = minRow; rowIdx <= maxRow; rowIdx++) {
+    range.minRow = range.type != "col" ? Math.min(range.startCell.row, range.endCell.row) : 0;
+    range.maxRow = range.type != "col" ? Math.max(range.startCell.row, range.endCell.row) : this.rowHeights.length - 1;
+    range.minCol = range.type != "row" ? Math.min(range.startCell.col, range.endCell.col) : 0;
+    range.maxCol = range.type != "row" ? Math.max(range.startCell.col, range.endCell.col) : this.columns.length - 1;
+    for (let rowIdx = range.minRow; rowIdx <= range.maxRow; rowIdx++) {
       this.selectionRows[rowIdx] = true;
-      for (let colIdx = minCol; colIdx <= maxCol; colIdx++) {
+      for (let colIdx = range.minCol; colIdx <= range.maxCol; colIdx++) {
         this.selectionCells[rowIdx][colIdx] = true;
         this.selectionCols[colIdx] = true;
       }
     }
+
+    this.setSelectionSizes();
 
     this.selection.emit({
       focus: this.focusCell,

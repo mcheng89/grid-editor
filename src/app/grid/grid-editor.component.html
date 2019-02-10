@@ -4,8 +4,9 @@
     (selection)="onSelection($event)"
     (focusChanging)="onFocusChanging($event)">
   </grid-selection>
-  <grid-editing [gridElementRef]="elementRef" [columns]="columns"
-    [editingCell]="editingCell" (editCellChange)="onEditCell($event)">
+  <grid-editing [gridElementRef]="elementRef" 
+    [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"
+    [editingCell]="editingCell" (editCellChange)="onEditCell($event)" (dataChange)="onDataChange($event)">
   </grid-editing>
   <div class="grid-top">
     <div class="fixed top-left">
@@ -71,12 +72,10 @@
               [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
               data-type="cell"
               [attr.data-col]="colIdx">
-              <ng-container [ngSwitch]="editingCell?.row == rowIdx && editingCell?.col == colIdx">
-                <div *ngSwitchCase="true" class="edit-cell ge-no-select">
-                  <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: {data: row, column: col}}"></ng-template>
-                </div>
-                <span *ngSwitchDefault>{{row[col.dataField]}}</span>
-              </ng-container>
+              <div *ngIf="editingCell?.row == rowIdx && editingCell?.col == colIdx" class="edit-cell ge-no-select">
+                <ng-template *ngTemplateOutlet="col.editorRef; context: {$implicit: editingCell}"></ng-template>
+              </div>
+              <span>{{row[col.dataField]}}</span>
             </td>
           </tr>
         </tbody>

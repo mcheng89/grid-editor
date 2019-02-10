@@ -134,15 +134,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   @Output('onEditStart') onEditStart = new EventEmitter();
   editingCell: any;
   onEditCell(event) {
-    if (this.editingCell) {
-      console.log(this.editingCell);
-      // resize row height after editing a cell
-      this.rowHeights[this.editingCell.row] = null;
-      setTimeout(() => {
-        this.resizeRowHeaders();
-        this.cdr.detectChanges();
-      });
-    }
     this.editingCell = event;
     if (event) {
       setTimeout(() => {
@@ -155,5 +146,17 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
         });
       }, 1);
     }
+  }
+
+  onDataChange(rows) {
+    // resize row height after editing a cell
+    this.totalHeight = 0;
+    rows.forEach(row => {
+      this.rowHeights[row] = null;
+    });
+    setTimeout(() => {
+      this.resizeRowHeaders();
+      this.cdr.detectChanges();
+    });
   }
 }
