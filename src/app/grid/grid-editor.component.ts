@@ -16,7 +16,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   columns: GridColumnComponent[] = [];
   fixedColumns: GridColumnComponent[] = [];
   
-  constructor(private elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
+  constructor(public elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
   
   ngAfterContentInit() {
     this.columns = this.columnRefs.filter(col => !col.fixed);
@@ -118,17 +118,23 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     }
   }
 
+  @Output() selection = new EventEmitter<any>();
+
   @ViewChild('grid') gridRef: ElementRef;
   onSelection(event) {
-    console.log(event)
+    // console.log(event)
     this.selectionRanges = event.ranges;
     this.selectionCols = event.cols;
     this.selectionRows = event.rows;
     this.selectionCells = event.cells;
 
-    this.gridRef.nativeElement.focus();
+    if (document.activeElement != this.gridRef.nativeElement) {
+      this.gridRef.nativeElement.focus();
+    }
     this.focusCell = event.focus;
     this.scrollCellToView(this.focusCell);
+
+    this.selection.emit(event);
   }
 
   @Output('onEditStart') onEditStart = new EventEmitter();
@@ -136,6 +142,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   onEditCell(event) {
     this.editingCell = event;
     if (event) {
+      this.cdr.detectChanges();
       setTimeout(() => {
         const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
         const target = dataCellTrs[event.row].children[event.col];

@@ -1,8 +1,7 @@
 <div #grid class="grid" tabindex="0">
   <grid-selection [gridElementRef]="elementRef"
     [columns]="columns" [rowHeights]="rowHeights" 
-    (selection)="onSelection($event)"
-    (focusChanging)="onFocusChanging($event)">
+    (selection)="onSelection($event)">
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
     [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"
@@ -16,7 +15,7 @@
         </colgroup>
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <td *ngFor="let col of fixedColumns; let colIdx = index">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" [ngClass]="col.cssCls">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
             </td>
           </tr>
@@ -32,7 +31,7 @@
         <tbody>
           <tr class="header" #header [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index"
-              [class.selected]="selectionCols[colIdx]"
+              [ngClass]="col.cssCls" [class.selected]="selectionCols[colIdx]"
               data-type="col"
               [attr.data-col]="colIdx">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
@@ -52,7 +51,8 @@
         <tbody>
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
-            <td *ngFor="let col of fixedColumns; let colIdx = index" [class.selected]="selectionRows[rowIdx]" data-type="row">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" 
+              [ngClass]="col.cssCls" [class.selected]="selectionRows[rowIdx]" data-type="row">
               {{row[col.dataField]}}
             </td>
           </tr>
@@ -69,7 +69,7 @@
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index" 
-              [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
+              [ngClass]="col.cssCls" [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
               data-type="cell"
               [attr.data-col]="colIdx">
               <div *ngIf="editingCell?.row == rowIdx && editingCell?.col == colIdx" class="edit-cell ge-no-select">

@@ -7,3 +7,7 @@
 grid-editor {
   flex: 1;
 }
+
+::ng-deep grid-editor .test {
+  color: red;
+}

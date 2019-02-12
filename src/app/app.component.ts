@@ -18,7 +18,8 @@ export class AppComponent implements OnInit {
   }, {
     dataField: "address",
     description: "Address",
-    width: 250
+    width: 250,
+    cssClass: "test",
   }];
   data: any = [];
   
@@ -46,5 +47,9 @@ export class AppComponent implements OnInit {
   onEditStart(event) {
     console.log(event);
     event.target.querySelector('input').focus();
+  }
+
+  onSelect(event) {
+    console.log(event);
   }
 }
