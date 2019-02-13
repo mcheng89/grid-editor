@@ -131,10 +131,13 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     if (document.activeElement != this.gridRef.nativeElement) {
       this.gridRef.nativeElement.focus();
     }
-    this.focusCell = event.focus;
-    this.scrollCellToView(this.focusCell);
 
     this.selection.emit(event);
+  }
+  onFocus(event) {
+    // console.log(event);
+    this.focusCell = event;
+    this.scrollCellToView(this.focusCell);
   }
 
   @Output('onEditStart') onEditStart = new EventEmitter();

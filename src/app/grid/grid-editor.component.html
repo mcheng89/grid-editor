@@ -1,7 +1,7 @@
 <div #grid class="grid" tabindex="0">
   <grid-selection [gridElementRef]="elementRef"
     [columns]="columns" [rowHeights]="rowHeights" 
-    (selection)="onSelection($event)">
+    (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
     [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"

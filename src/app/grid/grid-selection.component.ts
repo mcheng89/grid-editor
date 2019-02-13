@@ -12,11 +12,12 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   @Input() columns: GridColumnComponent[];
   @Input() rowHeights: number[];
 
+  @Output() focus = new EventEmitter<any>();
   @Output() selection = new EventEmitter<any>();
   @Output() focusChanging = new EventEmitter<any>();
 
   constructor(private gridSelectionSvc: GridSelectionService) {
-    this.gridSelectionSvc.onFocusChange(this).subscribe(newFocusCell => this.setFocusCell(newFocusCell));
+    this.gridSelectionSvc.onFocusChange(this).subscribe(newFocusCell => this.focusChanged(newFocusCell, true));
   }
 
   ngAfterViewInit() {
@@ -29,6 +30,8 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.rowHeights && this.focusCell) {
+      this.setFocusSize();
+      this.focus.emit(this.focusCell);
       this.setSelectionSizes();
       this.selection.emit({
         focus: this.focusCell,
@@ -48,6 +51,12 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   selectionCells: boolean[][] = [[]];
 
   selectionStart(event) {
+    if (event.shiftKey && this.selectionRanges.length) {
+      this.currentSelection = this.selectionRanges[this.selectionRanges.length - 1];
+      this.selectionMove(event);
+      return;
+    }
+
     const target = this.getSelectionTarget(event);
     if (target && target.tagName == "TD") {
       const type = target.dataset.type;
@@ -62,7 +71,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
           col: type == "col" ? parseInt(target.dataset.col) : this.columns.length - 1,
         };
       }
-      this.gridSelectionSvc.setFocusCell(this, this.focusCell);
+      this.setFocusCell(this.focusCell, false);
       this.currentSelection = this.createSelection(this.focusCell, endCell, type);
       this.setSelectionRange(this.currentSelection);
     }
@@ -157,17 +166,23 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       newFocusCell = {row: row, col: col + 1};
     }
     if (newFocusCell) {
-      this.gridSelectionSvc.setFocusCell(this, newFocusCell);
-      this.setFocusCell(newFocusCell);
+      this.setFocusCell(newFocusCell, true);
     }
   }
-  setFocusCell(cell) {
+  setFocusCell(cell, selection) {
+    this.gridSelectionSvc.setFocusCell(this, cell);
+    this.focusChanged(cell, selection);
+  }
+  focusChanged(cell, setSelection) {
     this.focusCell = cell;
-    this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
+    if (setSelection) {
+      this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
+    }
+    this.setFocusSize();
+    this.focus.emit(this.focusCell);
   }
 
   setSelectionSizes() {
-    this.focusCell = this.getOffset(this.focusCell.row, this.focusCell.col);
     this.selectionRanges.forEach(range => {
       range.startCell = this.getOffset(range.startCell.row, range.startCell.col);
       range.endCell = this.getOffset(range.endCell.row, range.endCell.col);
@@ -187,6 +202,9 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
         range.height = range.startCell.top - range.endCell.top + range.startCell.height;
       }
     });
+  }
+  setFocusSize() {
+    this.focusCell = this.getOffset(this.focusCell.row, this.focusCell.col);
   }
 
   getSelectionTarget(event) {
