@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
     dataField: "name",
     description: "Name",
     width: 150,
+    allowEditing: false
   }, {
     dataField: "address",
     description: "Address",

@@ -69,7 +69,9 @@
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index" 
-              [ngClass]="col.cssCls" [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
+              [ngClass]="col.cssCls" 
+              [class.selected]="selectionCells[rowIdx] && selectionCells[rowIdx][colIdx]"
+              [class.ge-no-edit]="col.allowEditing === false"
               data-type="cell"
               [attr.data-col]="colIdx">
               <div *ngIf="editingCell?.row == rowIdx && editingCell?.col == colIdx" class="edit-cell ge-no-select">

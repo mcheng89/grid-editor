@@ -11,6 +11,7 @@ export class GridColumnComponent implements OnInit, AfterContentInit {
   @Input() description: string;
   @Input() width: number;
   @Input() fixed: boolean;
+  @Input() allowEditing: boolean;
   @Input() cssCls: string;
   @Input() data: any;
 

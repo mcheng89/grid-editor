@@ -55,7 +55,12 @@ export class GridEditingComponent implements AfterViewInit {
     target.data = this.data[target.row];
     target.column = this.columns[target.col];
     target.value = target.data[target.column.dataField];
-    this.editCellChange.emit(target);
+
+    if (target.column.allowEditing === false) {
+      this.editCellChange.emit(null);
+    } else {
+      this.editCellChange.emit(target);
+    }
   }
   editDataChange() {
     const oldValue = this.editingCell.data[this.editingCell.column.dataField];
@@ -130,6 +135,9 @@ export class GridEditingComponent implements AfterViewInit {
     for (let row = range.minRow; row <= range.maxRow; row++) {
       modifiedRows.push(row);
       for (let col = range.minCol; col <= range.maxCol; col++) {
+        if (this.columns[col].allowEditing === false) {
+          continue;
+        }
         const copyData = arr[row % arr.length][col % arr[0].length];
         this.data[row][this.columns[col].dataField] = copyData;
       }

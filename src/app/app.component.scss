@@ -11,3 +11,7 @@ grid-editor {
 ::ng-deep grid-editor .test {
   color: red;
 }
+
+::ng-deep grid-editor .ge-no-edit {
+  background: #eee;
+}
