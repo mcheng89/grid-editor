@@ -1,6 +1,10 @@
 
-<grid-editor [data]="data" (onEditStart)="onEditStart($event)" (selection)="onSelect($event)">
-  <grid-column *ngFor="let col of columns"
+<div class="tabs">
+  <div *ngFor="let tab of tabs; let tabIdx = index" (click)="currentTab = tab">Tab {{tabIdx}}</div>
+  <div (click)="modifyData()">modifyData</div>
+</div>
+<grid-editor [data]="currentTab.data" (onEditStart)="onEditStart($event)" (selection)="onSelect($event)">
+  <grid-column *ngFor="let col of currentTab.columns"
     [dataField]="col.dataField"
     [description]="col.description"
     [width]="col.width"

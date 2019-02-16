@@ -1,5 +1,6 @@
 :host {
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   padding: 5px;
 }
@@ -14,4 +15,9 @@ grid-editor {
 
 ::ng-deep grid-editor .ge-no-edit {
   background: #eee;
+}
+
+.tabs div {
+  padding: 5px;
+  display: inline-block;
 }

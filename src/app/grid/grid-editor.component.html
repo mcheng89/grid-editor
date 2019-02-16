@@ -64,7 +64,7 @@
       </table>
     </div>
     <div class="scrollable data-table" #tableScroll>
-      <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'" [style.height]="totalHeight ? totalHeight + 'px' : 'auto'">
+      <table [style.width]="totalWidth ? totalWidth + 'px' : 'auto'">
         <colgroup>
           <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>

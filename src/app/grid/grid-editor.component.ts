@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterContentInit, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, QueryList, ElementRef, AfterContentInit, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
@@ -10,7 +10,7 @@ import { GridSelectionService } from './grid-selection.service';
   providers: [GridSelectionService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GridEditorComponent implements AfterContentInit, AfterViewInit {
+export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnChanges {
   @Input() data: any[];
   @Input() rowCssCls: string[];
   @ContentChildren(GridColumnComponent) columnRefs: QueryList<GridColumnComponent>;
@@ -19,21 +19,49 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   
   constructor(public elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
   
+  initialized: boolean = false;
   ngAfterContentInit() {
     this.columns = this.columnRefs.filter(col => !col.fixed);
     this.fixedColumns = this.columnRefs.filter(col => col.fixed);
+
+    this.columnRefs.changes.subscribe(() => this.updateColumns());
   }
   ngAfterViewInit() {
     this.resizeColHeaders();
-    setTimeout(() => {
-      this.resizeRowHeaders();
-      this.cdr.detectChanges();
-    });
+    this.updateRows();
+    this.initialized = true;
     
     this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
       event.preventDefault();
     });
     this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
+  }
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.initialized && changes.data) {
+      this.updateRows();
+      this.cdr.detectChanges();
+    }
+  }
+  updateColumns() {
+    this.columns = this.columnRefs.filter(col => !col.fixed);
+    this.fixedColumns = this.columnRefs.filter(col => col.fixed);
+
+    this.totalWidth = 0;
+    this.fixedWidth = 0;
+    setTimeout(() => {
+      this.resizeColHeaders();
+      this.updateRows();
+      this.cdr.detectChanges();
+    });
+  }
+  updateRows() {
+    this.headerHeight = 0;
+    this.rowHeights = [];
+    this.rowTops = [];
+    setTimeout(() => {
+      this.resizeRowHeaders();
+      this.cdr.detectChanges();
+    });
   }
   
   fixedWidth: number = 0;
@@ -59,7 +87,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
         this.columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
       }
       this.totalWidth += this.columns[idx].renderedWidth;
-      }
+    }
     for (let idx=0; idx<this.fixedColumns.length; idx++) {
       const header = fixedHeaderTds[idx];
       const dataCell = fixedCellTds[idx];
@@ -71,7 +99,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   }
 
   headerHeight: number = 0;
-  totalHeight: number = 0;
   rowHeights: number[] = [];
   rowTops: number[] = [];
   resizeRowHeaders() {
@@ -83,10 +110,8 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     this.headerHeight = Math.max(fixedHeaderTr.offsetHeight, headerTr.offsetHeight);
 
     this.rowHeights = [];
-    this.totalHeight = 0;
     for (let idx=0; idx<fixedCellTrs.length - 1; idx++) {
       this.rowHeights[idx] = Math.max(fixedCellTrs[idx].offsetHeight, dataCellTrs[idx].offsetHeight);
-      this.totalHeight += this.rowHeights[idx];
     }
 
     setTimeout(() => this.calcRowPositions());
@@ -171,7 +196,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
 
   onDataChange(rows) {
     // resize row height after editing a cell
-    this.totalHeight = 0;
     rows.forEach(row => {
       this.rowHeights[row] = null;
     });
