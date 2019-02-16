@@ -12,6 +12,7 @@ import { GridSelectionService } from './grid-selection.service';
 })
 export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   @Input() data: any[];
+  @Input() rowCssCls: string[];
   @ContentChildren(GridColumnComponent) columnRefs: QueryList<GridColumnComponent>;
   columns: GridColumnComponent[] = [];
   fixedColumns: GridColumnComponent[] = [];
@@ -72,6 +73,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
   headerHeight: number = 0;
   totalHeight: number = 0;
   rowHeights: number[] = [];
+  rowTops: number[] = [];
   resizeRowHeaders() {
     const fixedCellTrs = this.fixedScrollRef.nativeElement.querySelectorAll('tr');
     const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
@@ -86,6 +88,17 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
       this.rowHeights[idx] = Math.max(fixedCellTrs[idx].offsetHeight, dataCellTrs[idx].offsetHeight);
       this.totalHeight += this.rowHeights[idx];
     }
+
+    setTimeout(() => this.calcRowPositions());
+  }
+  calcRowPositions() {
+    const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
+
+    this.rowTops = [];
+    for (let idx=0; idx<dataCellTrs.length; idx++) {
+      this.rowTops[idx] = dataCellTrs[idx].offsetTop;
+    }
+    this.cdr.detectChanges();
   }
   onScroll(event) {
     this.headerScrollRef.nativeElement.scrollLeft = event.target.scrollLeft;
@@ -147,12 +160,10 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit {
     if (event) {
       this.cdr.detectChanges();
       setTimeout(() => {
-        const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
-        const target = dataCellTrs[event.row].children[event.col];
         this.onEditStart.emit({
           row: this.data[event.row],
           col: this.columns[event.col],
-          target: target,
+          target: event.element,
         });
       }, 1);
     }

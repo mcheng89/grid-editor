@@ -43,22 +43,22 @@ export class GridEditingComponent implements AfterViewInit {
   }
 
   startEditing(event) {
-    const target = this.getSelectionTarget(event);
-    if (target && target.tagName == "TD" && target.dataset.type == "cell") {
+    const target = this.getEditTarget(event.target);
+    if (target) {
       this.setEditTarget({
         row: parseInt(target.parentNode.dataset.row),
         col: parseInt(target.dataset.col),
+        element: target,
       });
     }
   }
   setEditTarget(target) {
-    target.data = this.data[target.row];
-    target.column = this.columns[target.col];
-    target.value = target.data[target.column.dataField];
-
-    if (target.column.allowEditing === false) {
+    if (!target.element) {
       this.editCellChange.emit(null);
     } else {
+      target.data = this.data[target.row];
+      target.column = this.columns[target.col];
+      target.value = target.data[target.column.dataField];
       this.editCellChange.emit(target);
     }
   }
@@ -71,12 +71,22 @@ export class GridEditingComponent implements AfterViewInit {
     }
   }
 
-  getSelectionTarget(event) {
-    let target = event.target;
-    while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
+  getEditTarget(target) {
+    while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-edit")) {
       target = target.parentNode;
     }
+    if (target && (target.tagName != "TD" || target.dataset.type != "cell")) {
+      return null;
+    }
+    if (target && (target.classList.contains("ge-no-edit") || target.parentElement.classList.contains("ge-no-edit"))) {
+      return null;
+    }
     return target;
+  }
+  getOffsetEditTarget(target) {
+    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
+    const domTarget = dataCellTrs[target.row].children[target.col];
+    return this.getEditTarget(domTarget);
   }
 
   editingHotkeys(event) {
@@ -89,6 +99,7 @@ export class GridEditingComponent implements AfterViewInit {
           target = {row: this.editingCell.row, col: this.editingCell.col + 1};
         }
         if (target) {
+          target.element = this.getOffsetEditTarget(target);
           this.gridSelectionSvc.setFocusCell(this, target);
           this.editDataChange();
           this.setEditTarget(target);
@@ -130,12 +141,16 @@ export class GridEditingComponent implements AfterViewInit {
     const arr = sheetclip.parse(str);
     console.log(arr);
 
+    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
+
     const range = this.selectionRanges[0];
     const modifiedRows = [];
     for (let row = range.minRow; row <= range.maxRow; row++) {
+      const dataCellTds = dataCellTrs[row].children;
+
       modifiedRows.push(row);
       for (let col = range.minCol; col <= range.maxCol; col++) {
-        if (this.columns[col].allowEditing === false) {
+        if (!this.getEditTarget(dataCellTds[col])) {
           continue;
         }
         const copyData = arr[row % arr.length][col % arr[0].length];

@@ -11,6 +11,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   @Input() gridElementRef: ElementRef;
   @Input() columns: GridColumnComponent[];
   @Input() rowHeights: number[];
+  @Input() rowTops: number[];
 
   @Output() focus = new EventEmitter<any>();
   @Output() selection = new EventEmitter<any>();
@@ -29,17 +30,9 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.rowHeights && this.focusCell) {
+    if ((changes.rowHeights || changes.rowTops) && this.focusCell) {
       this.setFocusSize();
-      this.focus.emit(this.focusCell);
       this.setSelectionSizes();
-      this.selection.emit({
-        focus: this.focusCell,
-        ranges: this.selectionRanges,
-        rows: this.selectionRows,
-        cols: this.selectionCols,
-        cells: this.selectionCells,
-      });
     }
   }
 
@@ -58,7 +51,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     }
 
     const target = this.getSelectionTarget(event);
-    if (target && target.tagName == "TD") {
+    if (target) {
       const type = target.dataset.type;
       this.focusCell = {
         row: type != "col" ? parseInt(target.parentNode.dataset.row) : 0, 
@@ -88,7 +81,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       return;
     }
     const target = this.getSelectionTarget(event);
-    if (target && target.tagName == "TD") {
+    if (target) {
       if (this.currentSelection.type == "cell" && target.dataset.type != "cell") {
         return;
       }
@@ -125,14 +118,6 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     }
 
     this.setSelectionSizes();
-
-    this.selection.emit({
-      focus: this.focusCell,
-      ranges: this.selectionRanges,
-      rows: this.selectionRows,
-      cols: this.selectionCols,
-      cells: this.selectionCells,
-    });
   }
   deselect() {
     this.selectionCells = this.rowHeights.map(row => this.columns.map(col => false));
@@ -150,7 +135,13 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     const row = this.focusCell.row;
     const col = this.focusCell.col;
     let newFocusCell;
-    if (event.key == "ArrowUp" || event.key == "Up") {
+    if (event.key == "Home") {
+      newFocusCell = {row: row, col: 0};
+    } else if (event.key == "End") {
+      newFocusCell = {row: row, col: this.columns.length - 1};
+    } else if (event.key == "PageUp") {
+    } else if (event.key == "PageDown") {
+    } else if (event.key == "ArrowUp" || event.key == "Up") {
       if (row <= 0) return;
       newFocusCell = {row: row - 1, col: col};
     } else if (event.key == "ArrowDown" || event.key == "Down") {
@@ -179,7 +170,6 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
     }
     this.setFocusSize();
-    this.focus.emit(this.focusCell);
   }
 
   setSelectionSizes() {
@@ -202,9 +192,17 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
         range.height = range.startCell.top - range.endCell.top + range.startCell.height;
       }
     });
+    this.selection.emit({
+      focus: this.focusCell,
+      ranges: this.selectionRanges,
+      rows: this.selectionRows,
+      cols: this.selectionCols,
+      cells: this.selectionCells,
+    });
   }
   setFocusSize() {
     this.focusCell = this.getOffset(this.focusCell.row, this.focusCell.col);
+    this.focus.emit(this.focusCell);
   }
 
   getSelectionTarget(event) {
@@ -212,14 +210,13 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
       target = target.parentNode;
     }
+    if (target && target.tagName != "TD") {
+      return null;
+    }
     return target;
   }
   getOffset(row, col) {
     // using offset height forces a rerender/performance hit
-    let top = 0;
-    for (let i=0; i<row; i++) {
-      top += this.rowHeights[i];
-    }
     let left = 0;
     for (let i=0; i<col; i++) {
       left += this.columns[i].renderedWidth;
@@ -227,7 +224,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     return {
       row: row,
       col: col,
-      top: top,
+      top: this.rowTops[row],
       left: left,
       height: this.rowHeights[row],
       width: this.columns[col].renderedWidth,

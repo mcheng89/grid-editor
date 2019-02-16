@@ -45,13 +45,18 @@ td {
 .header td {
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
+  position: relative;
 }
 tr.header td.selected {
   background: #ddd;
 }
-
-tr.header td.selected {
-  background: #ddd;
+.header td .resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  cursor: col-resize;
 }
 
 .fixed tr.row td.selected {

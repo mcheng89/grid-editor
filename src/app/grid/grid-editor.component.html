@@ -1,12 +1,13 @@
 <div #grid class="grid" tabindex="0">
   <grid-selection [gridElementRef]="elementRef"
-    [columns]="columns" [rowHeights]="rowHeights" 
+    [columns]="columns" [rowHeights]="rowHeights" [rowTops]="rowTops" 
     (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
     [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"
     [editingCell]="editingCell" (editCellChange)="onEditCell($event)" (dataChange)="onDataChange($event)">
   </grid-editing>
+  <grid-resizing [gridElementRef]="elementRef" [columns]="columns"></grid-resizing>
   <div class="grid-top">
     <div class="fixed top-left">
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
@@ -35,6 +36,7 @@
               data-type="col"
               [attr.data-col]="colIdx">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
+              <div class="resizer ge-no-select"></div>
             </td>
             <td *ngIf="scrollbarWidth">&nbsp;</td>
           </tr>
@@ -50,6 +52,7 @@
         </colgroup>
         <tbody>
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx" 
+            [ngClass]="rowCssCls && rowCssCls[rowIdx]"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of fixedColumns; let colIdx = index" 
               [ngClass]="col.cssCls" [class.selected]="selectionRows[rowIdx]" data-type="row">
@@ -67,6 +70,7 @@
         </colgroup>
         <tbody>
           <tr *ngFor="let row of data; let rowIdx = index" class="row" [attr.data-row]="rowIdx"
+            [ngClass]="rowCssCls && rowCssCls[rowIdx]"
             [style.height]="rowHeights[rowIdx] ? rowHeights[rowIdx] + 'px' : 'auto'">
             <td *ngFor="let col of columns; let colIdx = index" 
               [ngClass]="col.cssCls" 
