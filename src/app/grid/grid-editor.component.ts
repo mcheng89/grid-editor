@@ -2,12 +2,13 @@ import { Component, Input, Output, EventEmitter, ContentChildren, ViewChild, Que
 
 import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
+import { GridEditorService } from './grid-editor.service';
 
 @Component({
   selector: 'grid-editor',
   templateUrl: './grid-editor.component.html',
   styleUrls: ['./grid-editor.component.scss'],
-  providers: [GridSelectionService],
+  providers: [GridEditorService, GridSelectionService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnChanges {
@@ -17,7 +18,9 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   columns: GridColumnComponent[] = [];
   fixedColumns: GridColumnComponent[] = [];
   
-  constructor(public elementRef: ElementRef, private cdr: ChangeDetectorRef) {}
+  constructor(public elementRef: ElementRef, private cdr: ChangeDetectorRef, private gridSvc: GridEditorService) {
+    this.gridSvc.onColumnVisibilityChanging().subscribe(_ => this.updateColumnsVisible());
+  }
   
   initialized: boolean = false;
   ngAfterContentInit() {
@@ -43,7 +46,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     }
   }
   updateColumns() {
-    this.columns = this.columnRefs.filter(col => !col.fixed);
+    this.columns = this.columnRefs.filter(col => !col.fixed && col.visible !== false);
     this.fixedColumns = this.columnRefs.filter(col => col.fixed);
 
     this.totalWidth = 0;
@@ -53,6 +56,15 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
       this.updateRows();
       this.cdr.detectChanges();
     });
+  }
+  updateColumnsVisible() {
+    if (this.columnRefs.find(col => col.visible !== false && !col.renderedWidth)) {
+      this.updateColumns();
+    } else {
+      this.columns = this.columnRefs.filter(col => !col.fixed && col.visible !== false);
+      this.totalWidth = this.columns.map(col => col.renderedWidth).reduce((sum, width) => sum += width, 0);
+    }
+    this.cdr.detectChanges();
   }
   updateRows() {
     this.headerHeight = 0;

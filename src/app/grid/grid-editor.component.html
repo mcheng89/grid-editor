@@ -16,7 +16,7 @@
         </colgroup>
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <td *ngFor="let col of fixedColumns; let colIdx = index" [ngClass]="col.cssCls">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" [ngClass]="col.cssCls" [style.display]="col.visible === false ? 'none': null">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
             </td>
           </tr>

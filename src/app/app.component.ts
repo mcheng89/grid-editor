@@ -69,6 +69,14 @@ export class AppComponent implements OnInit {
       return row;
     })
   }
+
+  toggleVisible() {
+    this.currentTab.columns.forEach((col, idx) => {
+      col.visible = idx % 2 || (col.visible === false ? true : false);
+    });
+    console.log(this.currentTab.columns);
+  }
+
   onEditStart(event) {
     console.log(event);
     event.target.querySelector('input').focus();
