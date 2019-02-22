@@ -206,6 +206,11 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     }
   }
 
+  @Output('onDataCopy') dataCopy = new EventEmitter();
+  onDataCopy(event) {
+    this.dataCopy.emit(event);
+  }
+
   onDataChange(rows) {
     // resize row height after editing a cell
     rows.forEach(row => {

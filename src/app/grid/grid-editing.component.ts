@@ -18,6 +18,7 @@ export class GridEditingComponent implements AfterViewInit {
 
   @Output() dataChange = new EventEmitter<any>();
   @Output() editCellChange = new EventEmitter<any>();
+  @Output() dataCopy = new EventEmitter<any>();
 
   constructor(private gridSelectionSvc: GridSelectionService) {
     // prevent keyboard focus change when editing...
@@ -38,7 +39,7 @@ export class GridEditingComponent implements AfterViewInit {
 
     this.gridElementRef.nativeElement.addEventListener('keydown', this.editingHotkeys.bind(this));
 
-    document.addEventListener('copy', this.copySelection.bind(this));
+    // document.addEventListener('copy', this.copySelection.bind(this));
     document.addEventListener('paste', this.pasteClipboard.bind(this));
   }
 
@@ -106,11 +107,22 @@ export class GridEditingComponent implements AfterViewInit {
         }
         event.preventDefault();
       }
+    } else {
+      if (event.key == "c" && event.ctrlKey) {
+        this.copySelection(event);
+      }
     }
   }
 
+  isGridFocused() {
+    let target = document.activeElement.parentElement;
+    while (target && target != this.gridElementRef.nativeElement && !target.classList.contains("ge-no-select")) {
+      target = target.parentNode as HTMLElement;
+    }
+    return target == this.gridElementRef.nativeElement;
+  }
   copySelection(event) {
-    if (this.editingCell || document.activeElement.parentElement != this.gridElementRef.nativeElement) {
+    if (this.editingCell || !this.isGridFocused()) {
       return;
     }
     event.preventDefault();
@@ -124,14 +136,23 @@ export class GridEditingComponent implements AfterViewInit {
         arr.push(rowData);
       }
     });
-    console.log(arr);
+    // console.log(arr);
+    let copyEvent = {data: arr, selection: this.selectionRanges};
+    this.dataCopy.emit(copyEvent);
 
     const sheetclip = new SheetClip();
     const str = sheetclip.stringify(arr);
-    event.clipboardData.setData('text/plain', str);
+
+    const windowNavigator: any = window.navigator;
+    if (windowNavigator.clipboard) {
+      windowNavigator.clipboard.writeText(str);
+    } else {
+      const _window: any = window;
+      _window.clipboardData.setData('text', str);
+    }
   }
   pasteClipboard(event) {
-    if (this.editingCell || document.activeElement.parentElement != this.gridElementRef.nativeElement) {
+    if (this.editingCell || !this.isGridFocused()) {
       return;
     }
     event.preventDefault();
@@ -145,11 +166,17 @@ export class GridEditingComponent implements AfterViewInit {
 
     const range = this.selectionRanges[0];
     const modifiedRows = [];
-    for (let row = range.minRow; row <= range.maxRow; row++) {
+
+    const colRepeats = (range.maxCol - range.minCol + 1) % arr[0].length === 0
+      ? (range.maxCol - range.minCol + 1) : arr[0].length;
+    const rowRepeats = (range.maxRow - range.minRow + 1) % arr.length === 0
+      ? (range.maxRow - range.minRow + 1) : arr.length;
+    
+    for (let row = range.minRow; row < range.minRow + rowRepeats; row++) {
       const dataCellTds = dataCellTrs[row].children;
 
       modifiedRows.push(row);
-      for (let col = range.minCol; col <= range.maxCol; col++) {
+      for (let col = range.minCol; col < range.minCol + colRepeats; col++) {
         if (!this.getEditTarget(dataCellTds[col])) {
           continue;
         }

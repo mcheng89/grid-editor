@@ -5,7 +5,10 @@
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
     [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"
-    [editingCell]="editingCell" (editCellChange)="onEditCell($event)" (dataChange)="onDataChange($event)">
+    [editingCell]="editingCell" 
+    (editCellChange)="onEditCell($event)" 
+    (dataChange)="onDataChange($event)"
+    (dataCopy)="onDataCopy($event)">
   </grid-editing>
   <grid-resizing [gridElementRef]="elementRef" [columns]="columns"></grid-resizing>
   <div class="grid-top">
