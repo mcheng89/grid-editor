@@ -10,22 +10,38 @@ export class GridResizingComponent implements AfterViewInit {
   @Input() gridElementRef: ElementRef;
   @Input() columns: GridColumnComponent[];
 
+  @Output() resize = new EventEmitter();
+
   ngAfterViewInit() {
     this.gridElementRef.nativeElement.addEventListener('mousedown', this.resizeStart.bind(this));
-    this.gridElementRef.nativeElement.addEventListener('mousemove', this.resizeMove.bind(this));
+    document.addEventListener('mousemove', this.resizeMove.bind(this));
     document.addEventListener('mouseup', this.resizeEnd.bind(this));
   }
 
+  draggedColumn: GridColumnComponent;
+  prevX: number;
   resizeStart(event) {
     const target = this.getResizeTarget(event);
     if (target && target.tagName == "TD") {
       const columnIdx = parseInt(target.dataset.col);
-      console.log(target, columnIdx, this.columns[columnIdx]);
+      this.draggedColumn = this.columns[columnIdx];
+      this.prevX = event.screenX;
     }
   }
   resizeMove(event) {
+    if (this.draggedColumn) {
+      const deltaX = event.screenX - this.prevX;
+      this.prevX = event.screenX;
+      this.draggedColumn.renderedWidth += deltaX;
+
+      this.resize.emit(false);
+    }
   }
   resizeEnd(event) {
+    if (this.draggedColumn) {
+      this.draggedColumn = null;
+      this.resize.emit(true);
+    }
   }
 
   getResizeTarget(event) {

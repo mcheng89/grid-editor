@@ -4,14 +4,16 @@
     (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
-    [data]="data" [columns]="columns" [selectionRanges]="selectionRanges"
+    [data]="data" [columns]="columns" 
+    [focusCell]="focusCell" [selectionRanges]="selectionRanges"
     [editingCell]="editingCell" 
     (editCellChange)="onEditCell($event)" 
     (dataChange)="onDataChange($event)"
     (dataCopy)="dataCopy.emit($event)"
     (beforePaste)="beforePaste.emit($event)">
   </grid-editing>
-  <grid-resizing [gridElementRef]="elementRef" [columns]="columns"></grid-resizing>
+  <grid-resizing [gridElementRef]="elementRef" 
+    [columns]="columns" (resize)="updateColumnSizes($event)"></grid-resizing>
   <div class="grid-top">
     <div class="fixed top-left">
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">

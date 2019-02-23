@@ -13,6 +13,7 @@ export class GridEditingComponent implements AfterViewInit {
   @Input() gridElementRef: ElementRef;
   @Input() data: any[];
   @Input() columns: GridColumnComponent[];
+  @Input() focusCell: any;
   @Input() selectionRanges: any[] = [];
   @Input() editingCell: any;
 
@@ -113,12 +114,22 @@ export class GridEditingComponent implements AfterViewInit {
           this.setEditTarget(target);
         }
         event.preventDefault();
+      } else if (event.key == "Enter") {
+        this.editDataChange();
+        this.editCellChange.emit(null);
       }
     } else {
       if (event.key == "c" && (event.ctrlKey || event.metaKey)) {
         this.copySelection(event);
       } else if (event.key == "v" && (event.ctrlKey || event.metaKey)) {
         this.pasteClipboard(event);
+      } else if (event.key == "Enter") {
+        let target: any = {
+          row: this.focusCell.row,
+          col: this.focusCell.col,
+        };
+        target.element = this.getOffsetEditTarget(target);
+        this.setEditTarget(target);
       }
     }
   }

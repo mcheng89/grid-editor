@@ -66,6 +66,13 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     }
     this.cdr.detectChanges();
   }
+  updateColumnSizes(sizeEnd) {
+    this.totalWidth = this.columns.map(col => col.renderedWidth).reduce((sum, width) => sum += width, 0);
+    if (sizeEnd) {
+      this.updateRows();
+    }
+    this.cdr.detectChanges();
+  }
   updateRows() {
     this.headerHeight = 0;
     this.rowHeights = [];
@@ -203,6 +210,8 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
           target: event.element,
         });
       }, 1);
+    } else {
+      this.gridRef.nativeElement.focus();
     }
   }
 
