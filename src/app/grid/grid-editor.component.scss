@@ -43,20 +43,10 @@ td {
   position: relative;
 }
 
-.top-left .header td {
-  border: 0;
-}
-
 .header td {
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
   position: relative;
-}
-.header td:first-child {
-  border-left: 1px solid #ddd;
-}
-.header td:last-child {
-  border: 0;
 }
 tr.header td.selected {
   background: #ddd;
@@ -70,12 +60,12 @@ tr.header td.selected {
   cursor: col-resize;
 }
 
-.fixed tr.row td.selected {
-  background: #ddd;
+.top .header td:last-child {
+  border: 0;
 }
 
-.grid-content .fixed tr:first-child td {
-  border-top: 1px solid #ddd;
+.fixed tr.row td.selected {
+  background: #ddd;
 }
 
 .row td {

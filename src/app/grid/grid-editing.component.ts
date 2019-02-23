@@ -80,6 +80,9 @@ export class GridEditingComponent implements AfterViewInit {
     }
   }
 
+  isEditableTarget(target) {
+    return target && !target.classList.contains("ge-no-edit") && !target.parentElement.classList.contains("ge-no-edit");
+  }
   getEditTarget(target) {
     while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-edit")) {
       target = target.parentNode;
@@ -87,7 +90,7 @@ export class GridEditingComponent implements AfterViewInit {
     if (target && (target.tagName != "TD" || target.dataset.type != "cell")) {
       return null;
     }
-    if (target && (target.classList.contains("ge-no-edit") || target.parentElement.classList.contains("ge-no-edit"))) {
+    if (target && !this.isEditableTarget(target)) {
       return null;
     }
     return target;
@@ -101,18 +104,7 @@ export class GridEditingComponent implements AfterViewInit {
   editingHotkeys(event) {
     if (this.editingCell) {
       if (event.key == "Tab") {
-        let target;
-        if (event.shiftKey && this.editingCell.col > 0) {
-          target = {row: this.editingCell.row, col: this.editingCell.col - 1};
-        } else if (!event.shiftKey && this.editingCell.col < this.columns.length - 1) {
-          target = {row: this.editingCell.row, col: this.editingCell.col + 1};
-        }
-        if (target) {
-          target.element = this.getOffsetEditTarget(target);
-          this.gridSelectionSvc.setFocusCell(this, target);
-          this.editDataChange();
-          this.setEditTarget(target);
-        }
+        this.setNextEditCell(!event.shiftKey);
         event.preventDefault();
       } else if (event.key == "Enter") {
         this.editDataChange();
@@ -131,6 +123,46 @@ export class GridEditingComponent implements AfterViewInit {
         target.element = this.getOffsetEditTarget(target);
         this.setEditTarget(target);
       }
+    }
+  }
+
+  setNextEditCell(forward) {
+    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
+    // const domTarget = dataCellTrs[target.row].children[target.col];
+
+    let target: any = {row: this.editingCell.row, col: this.editingCell.col};
+    for (let i = 0; i < 10; i++) {
+      if (!forward) {
+        if (target.col > 0) {
+          target = {row: target.row, col: target.col - 1};
+        } else if (target.row != 0) {
+          target = {row: target.row - 1, col: this.columns.length - 1};
+        } else {
+          target = null;
+          break;
+        }
+      } else if (forward) {
+        if (target.col < this.columns.length - 1) {
+          target = {row: target.row, col: target.col + 1};
+        } else if (target.row != this.data.length - 1) {
+          target = {row: target.row + 1, col: 0};
+        } else {
+          target = null;
+          break;
+        }
+      }
+
+      const domTarget = dataCellTrs[target.row].children[target.col];
+      if (this.isEditableTarget(domTarget)) {
+        break;
+      }
+    }
+    
+    if (target) {
+      target.element = this.getOffsetEditTarget(target);
+      this.gridSelectionSvc.setFocusCell(this, target);
+      this.editDataChange();
+      this.setEditTarget(target);
     }
   }
 

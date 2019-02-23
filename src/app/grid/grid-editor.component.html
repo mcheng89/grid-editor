@@ -29,7 +29,7 @@
         </tbody>
       </table>
     </div>
-    <div class="fixed" #headerScroll>
+    <div class="fixed top" #headerScroll>
       <table [style.width]="totalWidth ? totalWidth + scrollbarWidth + 'px' : 'auto'">
         <colgroup>
           <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
