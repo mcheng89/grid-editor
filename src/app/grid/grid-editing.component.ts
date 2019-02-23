@@ -19,6 +19,7 @@ export class GridEditingComponent implements AfterViewInit {
   @Output() dataChange = new EventEmitter<any>();
   @Output() editCellChange = new EventEmitter<any>();
   @Output() dataCopy = new EventEmitter<any>();
+  @Output() beforePaste = new EventEmitter<any>();
 
   constructor(private gridSelectionSvc: GridSelectionService) {
     // prevent keyboard focus change when editing...
@@ -40,7 +41,7 @@ export class GridEditingComponent implements AfterViewInit {
     this.gridElementRef.nativeElement.addEventListener('keydown', this.editingHotkeys.bind(this));
 
     // document.addEventListener('copy', this.copySelection.bind(this));
-    document.addEventListener('paste', this.pasteClipboard.bind(this));
+    // document.addEventListener('paste', this.pasteClipboard.bind(this));
   }
 
   startEditing(event) {
@@ -68,7 +69,13 @@ export class GridEditingComponent implements AfterViewInit {
     const newValue = this.editingCell.value;
     if (oldValue != newValue) {
       this.editingCell.data[this.editingCell.column.dataField] = this.editingCell.value;
-      this.dataChange.emit([this.editingCell.row]);
+      this.dataChange.emit({
+        source: 'EDITOR',
+        changes: [{
+          row: this.editingCell.row,
+          data: this.editingCell.data,
+        }],
+      });
     }
   }
 
@@ -108,8 +115,10 @@ export class GridEditingComponent implements AfterViewInit {
         event.preventDefault();
       }
     } else {
-      if (event.key == "c" && event.ctrlKey) {
+      if (event.key == "c" && (event.ctrlKey || event.metaKey)) {
         this.copySelection(event);
+      } else if (event.key == "v" && (event.ctrlKey || event.metaKey)) {
+        this.pasteClipboard(event);
       }
     }
   }
@@ -157,15 +166,33 @@ export class GridEditingComponent implements AfterViewInit {
     }
     event.preventDefault();
 
-    const str = event.clipboardData.getData('text/plain');
-    const sheetclip = new SheetClip();
-    const arr = sheetclip.parse(str);
-    console.log(arr);
-
+    const windowNavigator: any = window.navigator;
+    if (windowNavigator.clipboard) {
+      windowNavigator.clipboard.readText()
+        .then((text: string) => {
+          const sheetclip = new SheetClip();
+          const arr = sheetclip.parse(text);
+          this.pasteRecords(arr);
+        });
+    } else {
+      const _window: any = window;
+      const str = _window.clipboardData.getData('text');
+      const sheetclip = new SheetClip();
+      const arr = sheetclip.parse(str);
+      this.pasteRecords(arr);
+    }
+  }
+  pasteRecords(arr) {
     const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
 
     const range = this.selectionRanges[0];
     const modifiedRows = [];
+
+    let pasteEvent = {data: arr, selection: this.selectionRanges, cancel: false};
+    this.beforePaste.emit(pasteEvent);
+    if (pasteEvent.cancel) {
+      return;
+    }
 
     const colRepeats = (range.maxCol - range.minCol + 1) % arr[0].length === 0
       ? (range.maxCol - range.minCol + 1) : arr[0].length;
@@ -175,15 +202,24 @@ export class GridEditingComponent implements AfterViewInit {
     for (let row = range.minRow; row < range.minRow + rowRepeats; row++) {
       const dataCellTds = dataCellTrs[row].children;
 
-      modifiedRows.push(row);
+      let rowChanges: any = {row: -1};
       for (let col = range.minCol; col < range.minCol + colRepeats; col++) {
         if (!this.getEditTarget(dataCellTds[col])) {
           continue;
         }
-        const copyData = arr[row % arr.length][col % arr[0].length];
+        const copyData = arr[(row - range.minRow) % arr.length][(col - range.minCol) % arr[0].length];
         this.data[row][this.columns[col].dataField] = copyData;
+
+        rowChanges.row = row;
+      }
+      if (rowChanges.row !== -1) {
+        rowChanges.data = this.data[row];
+        modifiedRows.push(rowChanges);
       }
     }
-    this.dataChange.emit(modifiedRows);
+    this.dataChange.emit({
+      source: 'PASTE',
+      changes: modifiedRows,
+    });
   }
 }

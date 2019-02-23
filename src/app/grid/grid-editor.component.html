@@ -8,7 +8,8 @@
     [editingCell]="editingCell" 
     (editCellChange)="onEditCell($event)" 
     (dataChange)="onDataChange($event)"
-    (dataCopy)="onDataCopy($event)">
+    (dataCopy)="dataCopy.emit($event)"
+    (beforePaste)="beforePaste.emit($event)">
   </grid-editing>
   <grid-resizing [gridElementRef]="elementRef" [columns]="columns"></grid-resizing>
   <div class="grid-top">
