@@ -12,13 +12,15 @@ import { GridEditorService } from './grid-editor.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnChanges {
+  @ViewChild('grid') gridRef: ElementRef;
+  
   @Input() data: any[];
   @Input() rowCssCls: string[];
   @ContentChildren(GridColumnComponent) columnRefs: QueryList<GridColumnComponent>;
   columns: GridColumnComponent[] = [];
   fixedColumns: GridColumnComponent[] = [];
   
-  constructor(public elementRef: ElementRef, private cdr: ChangeDetectorRef, private gridSvc: GridEditorService) {
+  constructor(private cdr: ChangeDetectorRef, private gridSvc: GridEditorService) {
     this.gridSvc.onColumnVisibilityChanging().subscribe(_ => this.updateColumnsVisible());
   }
   
@@ -34,7 +36,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     this.updateRows();
     this.initialized = true;
     
-    this.elementRef.nativeElement.addEventListener('selectstart', (event) => {
+    this.gridRef.nativeElement.addEventListener('selectstart', (event) => {
       event.preventDefault();
     });
     this.tableScrollRef.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
@@ -176,8 +178,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   }
 
   @Output() selection = new EventEmitter<any>();
-
-  @ViewChild('grid') gridRef: ElementRef;
   onSelection(event) {
     // console.log(event)
     this.selectionRanges = event.ranges;

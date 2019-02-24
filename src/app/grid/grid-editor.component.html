@@ -1,9 +1,9 @@
 <div #grid class="grid" tabindex="0">
-  <grid-selection [gridElementRef]="elementRef"
+  <grid-selection [gridElementRef]="gridRef"
     [columns]="columns" [rowHeights]="rowHeights" [rowTops]="rowTops" 
     (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
-  <grid-editing [gridElementRef]="elementRef" 
+  <grid-editing [gridElementRef]="gridRef" 
     [data]="data" [rowCssCls]="rowCssCls" [columns]="columns" 
     [focusCell]="focusCell" [selectionRanges]="selectionRanges"
     [editingCell]="editingCell" 
@@ -12,7 +12,7 @@
     (dataCopy)="dataCopy.emit($event)"
     (beforePaste)="beforePaste.emit($event)">
   </grid-editing>
-  <grid-resizing [gridElementRef]="elementRef" 
+  <grid-resizing [gridElementRef]="gridRef" 
     [columns]="columns" (resize)="updateColumnSizes($event)"></grid-resizing>
   <div class="grid-top">
     <div class="fixed top-left">
