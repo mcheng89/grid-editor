@@ -27,10 +27,10 @@ export class GridColumnComponent implements OnInit, AfterContentInit, OnChanges,
   constructor(private gridSvc: GridEditorService) { }
   
   initialized: boolean = false;
-  ngOnInit() {
+  ngOnInit(): void {
     this.renderedWidth = this.width;
   }
-  ngAfterContentInit() {
+  ngAfterContentInit(): void {
     this.headerRef = this.templateRef.find(tpl => {
       return tpl.letOf == 'header';
     }).templateRef;
@@ -38,11 +38,11 @@ export class GridColumnComponent implements OnInit, AfterContentInit, OnChanges,
       return tpl.letOf == 'editor';
     }).templateRef;
   }
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.initialized = true;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     if (this.initialized) {
       if (changes.visible) {
         this.gridSvc.columnVisibility.next();

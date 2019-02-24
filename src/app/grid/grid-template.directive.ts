@@ -5,7 +5,7 @@ import { Directive, Input, TemplateRef } from '@angular/core';
 })
 export class GridTemplateDirective {
   @Input()
-  set geTemplateOf(value) {
+  set geTemplateOf(value: string) {
     this.letOf = value;
   }
   letOf: string;

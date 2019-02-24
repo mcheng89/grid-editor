@@ -3,25 +3,26 @@ import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef, OnCh
 import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
 
+import { GridSelectionOffset, GridSelectionRange, GridSelectionChange } from './grid-selection.model';
+
 @Component({
   selector: 'grid-selection',
   template: '',
 })
 export class GridSelectionComponent implements AfterViewInit, OnChanges {
-  @Input() gridElementRef: ElementRef;
+  @Input() gridElementRef: ElementRef<HTMLElement>;
   @Input() columns: GridColumnComponent[];
   @Input() rowHeights: number[];
   @Input() rowTops: number[];
 
-  @Output() focus = new EventEmitter<any>();
-  @Output() selection = new EventEmitter<any>();
-  @Output() focusChanging = new EventEmitter<any>();
+  @Output() focus = new EventEmitter<GridSelectionOffset>();
+  @Output() selection = new EventEmitter<GridSelectionChange>();
 
   constructor(private gridSelectionSvc: GridSelectionService) {
     this.gridSelectionSvc.onFocusChange(this).subscribe(newFocusCell => this.focusChanged(newFocusCell, true));
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.gridElementRef.nativeElement.addEventListener('mousedown', this.selectionStart.bind(this));
     this.gridElementRef.nativeElement.addEventListener('mousemove', this.selectionMove.bind(this));
     document.addEventListener('mouseup', this.selectionEnd.bind(this));
@@ -29,21 +30,21 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     this.gridElementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     if ((changes.rowHeights || changes.rowTops) && this.focusCell) {
       this.setFocusSize();
       this.setSelectionSizes();
     }
   }
 
-  focusCell: any;
-  currentSelection: any;
-  selectionRanges: any[] = [];
+  focusCell: GridSelectionOffset;
+  currentSelection: GridSelectionRange;
+  selectionRanges: GridSelectionRange[] = [];
   selectionCols: boolean[] = [];
   selectionRows: boolean [] = [];
   selectionCells: boolean[][] = [[]];
 
-  selectionStart(event) {
+  selectionStart(event: MouseEvent): void {
     if (event.shiftKey && this.selectionRanges.length) {
       this.currentSelection = this.selectionRanges[this.selectionRanges.length - 1];
       this.selectionMove(event);
@@ -54,13 +55,13 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     if (target) {
       const type = target.dataset.type;
       this.focusCell = {
-        row: type != "col" ? parseInt(target.parentNode.dataset.row) : 0, 
+        row: type != "col" ? parseInt((target.parentNode as HTMLElement).dataset.row) : 0, 
         col: type != "row" ? parseInt(target.dataset.col) : 0,
       };
       let endCell = this.focusCell;
       if (type != "cell") {
         endCell = {
-          row: type == "row" ? parseInt(target.parentNode.dataset.row) : this.rowHeights.length - 1, 
+          row: type == "row" ? parseInt((target.parentNode as HTMLElement).dataset.row) : this.rowHeights.length - 1, 
           col: type == "col" ? parseInt(target.dataset.col) : this.columns.length - 1,
         };
       }
@@ -69,14 +70,14 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       this.setSelectionRange(this.currentSelection);
     }
   }
-  createSelection(startCell, endCell, type) {
+  createSelection(startCell: GridSelectionOffset, endCell: GridSelectionOffset, type: string): GridSelectionRange {
     return {
       type: type,
       startCell: startCell,
       endCell: endCell,
     };
   }
-  selectionMove(event) {
+  selectionMove(event: MouseEvent): void {
     if (!this.currentSelection) {
       return;
     }
@@ -86,8 +87,8 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
         return;
       }
       const startType = this.currentSelection.type;
-      const endOffset = {
-        row: startType != "col" ? parseInt(target.parentNode.dataset.row) : this.rowHeights.length - 1, 
+      const endOffset: GridSelectionOffset = {
+        row: startType != "col" ? parseInt((target.parentNode as HTMLElement).dataset.row) : this.rowHeights.length - 1, 
         col: startType != "row" ? parseInt(target.dataset.col) : this.columns.length - 1,
       };
       if (endOffset.row == this.currentSelection.endCell.row 
@@ -98,10 +99,10 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       this.setSelectionRange(this.currentSelection);
     }
   }
-  selectionEnd(event) {
+  selectionEnd(event: MouseEvent): void {
     this.currentSelection = null;
   }
-  setSelectionRange(range) {
+  setSelectionRange(range: GridSelectionRange): void {
     this.deselect();
     this.selectionRanges = [range];
 
@@ -119,14 +120,14 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
 
     this.setSelectionSizes();
   }
-  deselect() {
+  deselect(): void {
     this.selectionCells = this.rowHeights.map(row => this.columns.map(col => false));
     this.selectionCols = this.columns.map(col => false);
     this.selectionRows = this.rowHeights.map(row => false);
     this.selectionRanges = [];
   }
   
-  moveFocus(event) {
+  moveFocus(event: KeyboardEvent): void {
     if (!this.gridSelectionSvc.keyboardFocusChanging() || !this.focusCell) {
       // when in editing mode. let the editor have keyboard control
       return;
@@ -134,7 +135,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
 
     const row = this.focusCell.row;
     const col = this.focusCell.col;
-    let newFocusCell;
+    let newFocusCell: GridSelectionOffset;
     if (event.key == "Home") {
       newFocusCell = {row: row, col: 0};
     } else if (event.key == "End") {
@@ -162,11 +163,11 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       this.setFocusCell(newFocusCell, true);
     }
   }
-  setFocusCell(cell, selection) {
+  setFocusCell(cell: GridSelectionOffset, selection: boolean): void {
     this.gridSelectionSvc.setFocusCell(this, cell);
     this.focusChanged(cell, selection);
   }
-  focusChanged(cell, setSelection) {
+  focusChanged(cell: GridSelectionOffset, setSelection: boolean): void {
     this.focusCell = cell;
     if (setSelection) {
       this.setSelectionRange(this.createSelection(this.focusCell, this.focusCell, "cell"));
@@ -174,7 +175,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     this.setFocusSize();
   }
 
-  setSelectionSizes() {
+  setSelectionSizes(): void {
     this.selectionRanges.forEach(range => {
       range.startCell = this.getOffset(range.startCell.row, range.startCell.col);
       range.endCell = this.getOffset(range.endCell.row, range.endCell.col);
@@ -202,22 +203,22 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       cells: this.selectionCells,
     });
   }
-  setFocusSize() {
+  setFocusSize(): void {
     this.focusCell = this.getOffset(this.focusCell.row, this.focusCell.col);
     this.focus.emit(this.focusCell);
   }
 
-  getSelectionTarget(event) {
-    let target = event.target;
+  getSelectionTarget(event: MouseEvent): HTMLElement {
+    let target = event.target as HTMLElement;
     while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
-      target = target.parentNode;
+      target = target.parentNode as HTMLElement;
     }
     if (target && target.tagName != "TD") {
       return null;
     }
     return target;
   }
-  getOffset(row, col) {
+  getOffset(row: number, col: number): GridSelectionOffset {
     // using offset height forces a rerender/performance hit
     let left = 0;
     for (let i=0; i<col; i++) {
