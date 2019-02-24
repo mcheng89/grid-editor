@@ -17,6 +17,7 @@ export class GridColumnComponent implements OnInit, AfterContentInit, OnChanges,
   @Input() cssCls: string;
   @Input() data: any;
 
+  minWidth: number = 50;
   renderedWidth: number;
   
   @ContentChildren(GridTemplateDirective) templateRef: QueryList<GridTemplateDirective>;

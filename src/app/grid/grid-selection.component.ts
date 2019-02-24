@@ -142,9 +142,11 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     } else if (event.key == "PageUp") {
     } else if (event.key == "PageDown") {
     } else if (event.key == "ArrowUp" || event.key == "Up") {
+      event.preventDefault();
       if (row <= 0) return;
       newFocusCell = {row: row - 1, col: col};
     } else if (event.key == "ArrowDown" || event.key == "Down") {
+      event.preventDefault();
       if (row >= this.rowHeights.length - 1) return;
       newFocusCell = {row: row + 1, col: col};
     } else if (event.key == "ArrowLeft" || event.key == "Left" || (event.key == "Tab" && event.shiftKey)) {

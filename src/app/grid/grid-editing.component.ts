@@ -127,11 +127,10 @@ export class GridEditingComponent implements AfterViewInit {
   }
 
   setNextEditCell(forward) {
-    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
-    // const domTarget = dataCellTrs[target.row].children[target.col];
+    const dataCellTrs = this.gridElementRef.nativeElement.getElementsByClassName("data-table")[0].getElementsByTagName('tr');
 
     let target: any = {row: this.editingCell.row, col: this.editingCell.col};
-    for (let i = 0; i < 10; i++) {
+    for (;;) {
       if (!forward) {
         if (target.col > 0) {
           target = {row: target.row, col: target.col - 1};

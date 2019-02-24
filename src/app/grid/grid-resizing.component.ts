@@ -32,9 +32,14 @@ export class GridResizingComponent implements AfterViewInit {
     if (this.draggedColumn) {
       const deltaX = event.screenX - this.prevX;
       this.prevX = event.screenX;
-      this.draggedColumn.renderedWidth += deltaX;
 
-      this.resize.emit(false);
+      if (deltaX > 0 || this.draggedColumn.renderedWidth != this.draggedColumn.minWidth) {
+        this.draggedColumn.renderedWidth += deltaX;
+        if (this.draggedColumn.renderedWidth < this.draggedColumn.minWidth) {
+          this.draggedColumn.renderedWidth = this.draggedColumn.minWidth;
+        }
+        this.resize.emit(false);
+      }
     }
   }
   resizeEnd(event) {
