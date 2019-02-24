@@ -43,8 +43,12 @@ export class GridColumnComponent implements OnInit, AfterContentInit, OnChanges,
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.initialized && changes.visible) {
-      this.gridSvc.columnVisibilityChanging();
+    if (this.initialized) {
+      if (changes.visible) {
+        this.gridSvc.columnVisibility.next();
+      } else if (changes.allowEditing) {
+        this.gridSvc.columnEditable.next();
+      }
     }
   }
 }

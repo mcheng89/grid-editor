@@ -4,7 +4,7 @@
     (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
   <grid-editing [gridElementRef]="elementRef" 
-    [data]="data" [columns]="columns" 
+    [data]="data" [rowCssCls]="rowCssCls" [columns]="columns" 
     [focusCell]="focusCell" [selectionRanges]="selectionRanges"
     [editingCell]="editingCell" 
     (editCellChange)="onEditCell($event)" 

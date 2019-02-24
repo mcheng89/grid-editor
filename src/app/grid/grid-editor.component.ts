@@ -210,8 +210,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
           target: event.element,
         });
       }, 1);
-    } else {
-      this.gridRef.nativeElement.focus();
     }
   }
 

@@ -9,7 +9,9 @@ export class GridEditorService {
   onColumnVisibilityChanging(): Observable<any> {
     return this.columnVisibility.pipe(debounceTime(10));
   }
-  columnVisibilityChanging() {
-    this.columnVisibility.next();
+
+  columnEditable: Subject<any> = new Subject<any>();
+  onColumnEditableChanged(): Observable<any> {
+    return this.columnVisibility.pipe(debounceTime(10));
   }
 }

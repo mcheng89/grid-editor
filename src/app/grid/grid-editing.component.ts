@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 
 import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
+import { GridEditorService } from './grid-editor.service';
 
 import * as SheetClip from 'sheetclip';
 
@@ -9,9 +10,10 @@ import * as SheetClip from 'sheetclip';
   selector: 'grid-editing',
   template: '',
 })
-export class GridEditingComponent implements AfterViewInit {
+export class GridEditingComponent implements AfterViewInit, OnChanges {
   @Input() gridElementRef: ElementRef;
   @Input() data: any[];
+  @Input() rowCssCls: any[];
   @Input() columns: GridColumnComponent[];
   @Input() focusCell: any;
   @Input() selectionRanges: any[] = [];
@@ -22,7 +24,7 @@ export class GridEditingComponent implements AfterViewInit {
   @Output() dataCopy = new EventEmitter<any>();
   @Output() beforePaste = new EventEmitter<any>();
 
-  constructor(private gridSelectionSvc: GridSelectionService) {
+  constructor(private gridSelectionSvc: GridSelectionService, private gridSvc: GridEditorService) {
     // prevent keyboard focus change when editing...
     this.gridSelectionSvc.onKeyboardFocusChanging().subscribe(event => {
       event.cancel = this.editingCell;
@@ -34,11 +36,27 @@ export class GridEditingComponent implements AfterViewInit {
         this.editCellChange.emit(null);
       }
     });
+
+    this.gridSvc.onColumnEditableChanged().subscribe(event => this.checkEditableOnInputChange());
+  }
+
+  initialized: boolean = false;
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.initialized && (changes.data || changes.rowCssCls)) {
+      setTimeout(() => this.checkEditableOnInputChange());
+    }
+  }
+
+  checkEditableOnInputChange() {
+    if (this.editingCell && !this.getOffsetEditTarget(this.editingCell)) {
+      this.editCellChange.emit(null);
+    }
   }
 
   ngAfterViewInit() {
-    this.gridElementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
+    this.initialized = true;
 
+    this.gridElementRef.nativeElement.addEventListener('dblclick', this.startEditing.bind(this));
     this.gridElementRef.nativeElement.addEventListener('keydown', this.editingHotkeys.bind(this));
 
     // document.addEventListener('copy', this.copySelection.bind(this));
@@ -66,18 +84,24 @@ export class GridEditingComponent implements AfterViewInit {
     }
   }
   editDataChange() {
-    const oldValue = this.editingCell.data[this.editingCell.column.dataField];
-    const newValue = this.editingCell.value;
-    if (oldValue != newValue) {
-      this.editingCell.data[this.editingCell.column.dataField] = this.editingCell.value;
-      this.dataChange.emit({
-        source: 'EDITOR',
-        changes: [{
-          row: this.editingCell.row,
-          data: this.editingCell.data,
-        }],
-      });
-    }
+    // sometimes editors only set value on focus lost
+    // setTimeout to get actual value...
+    const currentEditCell = this.editingCell;
+    this.gridElementRef.nativeElement.focus();
+    setTimeout(() => {
+      const oldValue = currentEditCell.data[currentEditCell.column.dataField];
+      const newValue = currentEditCell.value;
+      if (oldValue != newValue) {
+        currentEditCell.data[currentEditCell.column.dataField] = currentEditCell.value;
+        this.dataChange.emit({
+          source: 'EDITOR',
+          changes: [{
+            row: currentEditCell.row,
+            data: currentEditCell.data,
+          }],
+        });
+      }
+    });
   }
 
   isEditableTarget(target) {
