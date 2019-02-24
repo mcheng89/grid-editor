@@ -120,7 +120,7 @@ export class GridEditingComponent implements AfterViewInit, OnChanges {
     return target;
   }
   getOffsetEditTarget(target) {
-    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
+    const dataCellTrs = this.gridElementRef.nativeElement.getElementsByClassName("data-table")[0].getElementsByTagName('tr');
     const domTarget = dataCellTrs[target.row].children[target.col];
     return this.getEditTarget(domTarget);
   }
@@ -249,7 +249,7 @@ export class GridEditingComponent implements AfterViewInit, OnChanges {
     }
   }
   pasteRecords(arr) {
-    const dataCellTrs = this.gridElementRef.nativeElement.querySelector(".data-table").querySelectorAll('tr');
+    const dataCellTrs = this.gridElementRef.nativeElement.getElementsByClassName("data-table")[0].getElementsByTagName('tr');
 
     const range = this.selectionRanges[0];
     const modifiedRows = [];

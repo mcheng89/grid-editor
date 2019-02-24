@@ -92,10 +92,10 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   @ViewChild('headerScroll') headerScrollRef: ElementRef;
   @ViewChild('tableScroll') tableScrollRef: ElementRef;
   resizeColHeaders() {
-    const fixedHeaderTds = this.fixedHeaderRowRef.nativeElement.querySelectorAll('td');
-    const fixedCellTds = this.fixedScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
-    const headerTds = this.headerRowRef.nativeElement.querySelectorAll('td');
-    const dataCellTds = this.tableScrollRef.nativeElement.querySelector('tr').querySelectorAll('td');
+    const fixedHeaderTds = this.fixedHeaderRowRef.nativeElement.getElementsByTagName('td');
+    const fixedCellTds = this.fixedScrollRef.nativeElement.getElementsByTagName('tr')[0].getElementsByTagName('td');
+    const headerTds = this.headerRowRef.nativeElement.getElementsByTagName('td');
+    const dataCellTds = this.tableScrollRef.nativeElement.getElementsByTagName('tr')[0].getElementsByTagName('td');
     
     this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
 
@@ -121,8 +121,8 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   rowHeights: number[] = [];
   rowTops: number[] = [];
   resizeRowHeaders() {
-    const fixedCellTrs = this.fixedScrollRef.nativeElement.querySelectorAll('tr');
-    const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
+    const fixedCellTrs = this.fixedScrollRef.nativeElement.getElementsByTagName('tr');
+    const dataCellTrs = this.tableScrollRef.nativeElement.getElementsByTagName('tr');
 
     const fixedHeaderTr = this.fixedHeaderRowRef.nativeElement;
     const headerTr = this.headerRowRef.nativeElement;
@@ -136,7 +136,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     setTimeout(() => this.calcRowPositions());
   }
   calcRowPositions() {
-    const dataCellTrs = this.tableScrollRef.nativeElement.querySelectorAll('tr');
+    const dataCellTrs = this.tableScrollRef.nativeElement.getElementsByTagName('tr');
 
     this.rowTops = [];
     for (let idx=0; idx<dataCellTrs.length; idx++) {
@@ -185,7 +185,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     this.selectionRows = event.rows;
     this.selectionCells = event.cells;
 
-    if (document.activeElement != this.gridRef.nativeElement) {
+    if (document.activeElement != this.gridRef.nativeElement && !this.editingCell) {
       this.gridRef.nativeElement.focus();
     }
 
