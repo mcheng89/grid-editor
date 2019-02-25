@@ -33,7 +33,7 @@
       <table [style.width]="totalWidth ? totalWidth + scrollbarWidth + 'px' : 'auto'">
         <colgroup>
           <col *ngFor="let col of columns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
-          <col *ngIf="scrollbarWidth" [style.width]="scrollbarWidth + 'px'">
+          <col [style.width]="scrollbarWidth + 'px'">
         </colgroup>
         <tbody>
           <tr class="header" #header [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
@@ -44,7 +44,7 @@
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
               <div class="resizer ge-no-select"></div>
             </td>
-            <td *ngIf="scrollbarWidth">&nbsp;</td>
+            <td [style.visibility]="scrollbarWidth ? 'visible' : 'hidden'">&nbsp;</td>
           </tr>
         </tbody>
       </table>

@@ -32,6 +32,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     this.columnRefs.changes.subscribe(() => this.updateColumns());
   }
   ngAfterViewInit() {
+    this.calculateScrollbarWidth();
     this.resizeColHeaders();
     this.updateRows();
     this.initialized = true;
@@ -104,8 +105,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     const fixedCellTds = this.fixedScrollRef.nativeElement.getElementsByTagName('tr')[0].getElementsByTagName('td');
     const headerTds = this.headerRowRef.nativeElement.getElementsByTagName('td');
     const dataCellTds = this.tableScrollRef.nativeElement.getElementsByTagName('tr')[0].getElementsByTagName('td');
-    
-    this.scrollbarWidth = this.headerScrollRef.nativeElement.clientWidth - this.tableScrollRef.nativeElement.clientWidth;
 
     for (let idx=0; idx<this.columns.length; idx++) {
       const header = headerTds[idx];
@@ -123,6 +122,24 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
       }
       this.fixedWidth += this.fixedColumns[idx].renderedWidth;
     }
+  }
+  calculateScrollbarWidth() {
+    const outer = document.createElement("div");
+    outer.style.visibility = "hidden";
+    outer.style.width = "100px";
+    document.body.appendChild(outer);
+    const widthNoScroll = outer.offsetWidth;
+
+    outer.style.overflow = "scroll";
+    const inner = document.createElement("div");
+    inner.style.width = "100%";
+    outer.appendChild(inner);        
+    const widthWithScroll = inner.offsetWidth;
+
+    // remove divs
+    outer.parentNode.removeChild(outer);
+
+    this.scrollbarWidth = widthNoScroll - widthWithScroll;
   }
 
   headerHeight: number = 0;
