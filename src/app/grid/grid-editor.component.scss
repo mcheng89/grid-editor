@@ -77,19 +77,6 @@ tr.header td.selected {
 .row:nth-child(even) {
   background: #ecf1f7;
 }
-.data-table tr.row td.selected:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #005eff;
-  opacity: .1;
-  /* ie11 - fix td height past content size */
-  height: 999em;
-}
-
 
 .edit-cell {
   position: absolute;
@@ -98,6 +85,7 @@ tr.header td.selected {
   right: 0;
   bottom: 0;
   overflow: hidden;
+  z-index: 1;
 }
 
 .selections {
@@ -105,8 +93,19 @@ tr.header td.selected {
   top: 0;
   left: 0;
 }
-.selection-border {
+.selection {
   position: absolute;
-  background-color: rgb(75, 137, 255);
+  border: 1px solid rgb(75, 137, 255);
   display: block;
+  pointer-events: none;
+}
+.selection:before {
+  content: "";
+  position: absolute;
+  background: #005eff;
+  opacity: .1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }

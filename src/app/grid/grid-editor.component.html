@@ -94,14 +94,8 @@
       </table>
       <div class="selections">
         <ng-template #selectionRef let-range="range" let-thickness="thickness">
-          <div class="selection-border" [style.height]="thickness + 'px'" 
-            [style.top]="range.top + 'px'" [style.left]="range.left + 'px'" [style.width]="range.width + 'px'"></div>
-          <div class="selection-border" [style.height]="thickness + 'px'" 
-            [style.top]="(range.top + range.height - 2) + 'px'" [style.left]="range.left + 'px'" [style.width]="range.width + 'px'"></div>
-          <div class="selection-border" [style.width]="thickness + 'px'" 
-            [style.top]="range.top + 'px'" [style.left]="range.left + 'px'" [style.height]="range.height + 'px'"></div>
-          <div class="selection-border" [style.width]="thickness + 'px'" 
-            [style.top]="range.top + 'px'" [style.left]="(range.left + range.width - 2) + 'px'" [style.height]="range.height + 'px'"></div>
+          <div class="selection" [style.top]="range.top + 'px'" [style.left]="range.left + 'px'"
+            [style.border-width]="thickness + 'px'" [style.width]="range.width + 'px'" [style.height]="range.height + 'px'"></div>
         </ng-template>
         <ng-container *ngIf="focusCell">
           <ng-container *ngTemplateOutlet="selectionRef; context: {

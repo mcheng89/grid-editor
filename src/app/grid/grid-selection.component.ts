@@ -136,6 +136,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     const row = this.focusCell.row;
     const col = this.focusCell.col;
     let newFocusCell: GridSelectionOffset;
+    let newSelection: GridSelectionRange;
     if (event.key == "Home") {
       newFocusCell = {row: row, col: 0};
     } else if (event.key == "End") {
@@ -158,9 +159,19 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       event.preventDefault();
       if (col >= this.columns.length - 1) return;
       newFocusCell = {row: row, col: col + 1};
+    } else if (event.key == "a" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      newFocusCell = {row: 0, col: 0};
+      newSelection = this.createSelection(
+        {row: 0, col: 0}, 
+        {row: this.rowHeights.length - 1, col: this.columns.length - 1}, 
+        "cell");
     }
     if (newFocusCell) {
-      this.setFocusCell(newFocusCell, true);
+      this.setFocusCell(newFocusCell, !newSelection);
+    }
+    if (newSelection) {
+      this.setSelectionRange(newSelection);
     }
   }
   setFocusCell(cell: GridSelectionOffset, selection: boolean): void {
