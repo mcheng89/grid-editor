@@ -1,5 +1,5 @@
 <div #grid class="grid" tabindex="0">
-  <grid-selection [gridElementRef]="gridRef"
+  <grid-selection [gridElementRef]="gridRef" [topLeftRef]="topLeftRef"
     [columns]="columns" [rowHeights]="rowHeights" [rowTops]="rowTops" 
     (selection)="onSelection($event)" (focus)="onFocus($event)">
   </grid-selection>
@@ -15,14 +15,14 @@
   <grid-resizing [gridElementRef]="gridRef" 
     [columns]="columns" (resize)="updateColumnSizes($event)"></grid-resizing>
   <div class="grid-top">
-    <div class="fixed top-left">
+    <div class="fixed top-left" #topLeft>
       <table [style.width]="fixedWidth ? fixedWidth + 'px' : 'auto'">
         <colgroup>
           <col *ngFor="let col of fixedColumns; let colIdx = index" [style.width]="col.renderedWidth ? col.renderedWidth + 'px' : 'auto'">
         </colgroup>
         <tbody>
           <tr class="header" #fixedHeader [style.height]="headerHeight ? headerHeight + 'px' : 'auto'">
-            <td *ngFor="let col of fixedColumns; let colIdx = index" [ngClass]="col.cssCls" [style.display]="col.visible === false ? 'none': null">
+            <td *ngFor="let col of fixedColumns; let colIdx = index" [ngClass]="col.cssCls" class="ge-no-select">
               <div><ng-template *ngTemplateOutlet="col.headerRef; context: {$implicit: col}"></ng-template></div>
             </td>
           </tr>

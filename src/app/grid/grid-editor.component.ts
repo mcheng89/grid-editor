@@ -88,6 +88,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   fixedWidth: number = 0;
   totalWidth: number = 0;
   scrollbarWidth: number = 0;
+  @ViewChild('topLeft') topLeftRef: ElementRef;
   @ViewChild('fixedHeader') fixedHeaderRowRef: ElementRef;
   @ViewChild('header') headerRowRef: ElementRef;
   @ViewChild('fixedScroll') fixedScrollRef: ElementRef;

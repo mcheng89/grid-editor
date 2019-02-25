@@ -11,6 +11,7 @@ import { GridSelectionOffset, GridSelectionRange, GridSelectionChange } from './
 })
 export class GridSelectionComponent implements AfterViewInit, OnChanges {
   @Input() gridElementRef: ElementRef<HTMLElement>;
+  @Input() topLeftRef: ElementRef<HTMLElement>;
   @Input() columns: GridColumnComponent[];
   @Input() rowHeights: number[];
   @Input() rowTops: number[];
@@ -28,6 +29,8 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     document.addEventListener('mouseup', this.selectionEnd.bind(this));
 
     this.gridElementRef.nativeElement.addEventListener('keydown', this.moveFocus.bind(this));
+
+    this.topLeftRef.nativeElement.addEventListener('click', this.selectAll.bind(this));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -136,7 +139,6 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     const row = this.focusCell.row;
     const col = this.focusCell.col;
     let newFocusCell: GridSelectionOffset;
-    let newSelection: GridSelectionRange;
     if (event.key == "Home") {
       newFocusCell = {row: row, col: 0};
     } else if (event.key == "End") {
@@ -161,18 +163,19 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
       newFocusCell = {row: row, col: col + 1};
     } else if (event.key == "a" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      newFocusCell = {row: 0, col: 0};
-      newSelection = this.createSelection(
-        {row: 0, col: 0}, 
-        {row: this.rowHeights.length - 1, col: this.columns.length - 1}, 
-        "cell");
+      this.selectAll();
+      return;
     }
     if (newFocusCell) {
-      this.setFocusCell(newFocusCell, !newSelection);
+      this.setFocusCell(newFocusCell, true);
     }
-    if (newSelection) {
-      this.setSelectionRange(newSelection);
-    }
+  }
+  selectAll() {
+    this.setFocusCell({row: 0, col: 0}, false);
+    this.setSelectionRange(this.createSelection(
+      {row: 0, col: 0}, 
+      {row: this.rowHeights.length - 1, col: this.columns.length - 1}, 
+      "cell"));
   }
   setFocusCell(cell: GridSelectionOffset, selection: boolean): void {
     this.gridSelectionSvc.setFocusCell(this, cell);
@@ -224,7 +227,7 @@ export class GridSelectionComponent implements AfterViewInit, OnChanges {
     while (target && target != this.gridElementRef.nativeElement && target.tagName != "TD" && !target.classList.contains("ge-no-select")) {
       target = target.parentNode as HTMLElement;
     }
-    if (target && target.tagName != "TD") {
+    if (target && (target.tagName != "TD" || target.classList.contains("ge-no-select"))) {
       return null;
     }
     return target;
