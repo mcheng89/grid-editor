@@ -193,7 +193,7 @@ export class GridEditingComponent implements AfterViewInit, OnChanges {
   }
 
   isGridFocused(): boolean {
-    let target = document.activeElement.parentElement;
+    let target = document.activeElement;
     while (target && target != this.gridElementRef.nativeElement && !target.classList.contains("ge-no-select")) {
       target = target.parentNode as HTMLElement;
     }
