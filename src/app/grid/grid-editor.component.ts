@@ -75,6 +75,11 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     }
     this.cdr.detectChanges();
   }
+  resetColumnSizing() {
+    this.columnRefs.forEach(col => col.renderedWidth = col.width || 0);
+    this.updateColumns();
+    this.cdr.detectChanges();
+  }
   updateRows() {
     this.headerHeight = 0;
     this.rowHeights = [];
