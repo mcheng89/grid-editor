@@ -4,6 +4,9 @@ import { GridColumnComponent } from './grid-column.component';
 import { GridSelectionService } from './grid-selection.service';
 import { GridEditorService } from './grid-editor.service';
 
+import { Subject, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+
 @Component({
   selector: 'grid-editor',
   templateUrl: './grid-editor.component.html',
@@ -19,9 +22,17 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   @ContentChildren(GridColumnComponent) columnRefs: QueryList<GridColumnComponent>;
   columns: GridColumnComponent[] = [];
   fixedColumns: GridColumnComponent[] = [];
+
+  rowUpdate = new Subject();
   
   constructor(private cdr: ChangeDetectorRef, private gridSvc: GridEditorService) {
     this.gridSvc.onColumnVisibilityChanging().subscribe(_ => this.updateColumnsVisible());
+
+    this.rowUpdate.pipe(debounceTime(10)).subscribe(() => {
+      console.log("updateRows inside");
+      this.resizeRowHeaders();
+      this.cdr.detectChanges();
+    })
   }
   
   initialized: boolean = false;
@@ -45,7 +56,6 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
   ngOnChanges(changes: SimpleChanges) {
     if (this.initialized && changes.data) {
       this.updateRows();
-      this.cdr.detectChanges();
     }
   }
   updateColumns() {
@@ -85,10 +95,7 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     this.headerHeight = 0;
     this.rowHeights = [];
     this.rowTops = [];
-    setTimeout(() => {
-      this.resizeRowHeaders();
-      this.cdr.detectChanges();
-    });
+    this.rowUpdate.next();
   }
   
   fixedWidth: number = 0;
@@ -106,19 +113,23 @@ export class GridEditorComponent implements AfterContentInit, AfterViewInit, OnC
     const headerTds = this.headerRowRef.nativeElement.getElementsByTagName('td');
     const dataCellTds = this.tableScrollRef.nativeElement.getElementsByTagName('tr')[0].getElementsByTagName('td');
 
+    this.totalWidth = 0;
     for (let idx=0; idx<this.columns.length; idx++) {
       const header = headerTds[idx];
       const dataCell = dataCellTds[idx];
-      if (!this.columns[idx].width) {
-        this.columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
+      if (!this.columns[idx].renderedWidth) {
+        // add +1 for ie11 decimal rounding
+        this.columns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth, this.columns[idx].minWidth) + 1;
       }
       this.totalWidth += this.columns[idx].renderedWidth;
     }
+    this.fixedWidth = 0;
     for (let idx=0; idx<this.fixedColumns.length; idx++) {
       const header = fixedHeaderTds[idx];
       const dataCell = fixedCellTds[idx];
-      if (!this.fixedColumns[idx].width) {
-        this.fixedColumns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth);
+      if (this.fixedColumns[idx].renderedWidth) {
+        // add +1 for ie11 decimal rounding
+        this.fixedColumns[idx].renderedWidth = Math.max(header.offsetWidth, dataCell.offsetWidth, this.fixedColumns[idx].minWidth) + 1;
       }
       this.fixedWidth += this.fixedColumns[idx].renderedWidth;
     }
